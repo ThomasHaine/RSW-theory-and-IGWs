@@ -1,0 +1,2259 @@
+\documentclass[10pt,reqno]{amsart}
+ \usepackage{amsaddr}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{natbib}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{empheq}
+\usepackage[theorems,skins]{tcolorbox}
+
+\newtcolorbox{mymathbox}[1][]{colback=white, sharp corners, #1}
+
+\newtcbox{\othermathbox}[1][]{nobeforeafter, math upper, tcbox raise base, enhanced, sharp corners, colback=black!10, colframe=red!30!black, drop fuzzy shadow, left=1em, top=2em, right=3em, bottom=4em}
+
+
+\newcommand{\A}{{\mathbf A}}
+\newcommand{\B}{{\mathbf B}}
+\newcommand{\C}{{\mathbf C}}
+\newcommand{\D}{{\mathbf D}}
+\newcommand{\E}{{\mathbf E}}
+\newcommand{\F}{{\mathbf F}}
+\newcommand{\HH}{{\mathbf H}}
+\newcommand{\K}{{\mathbf K}}
+\newcommand{\M}{{\mathbf M}}
+\newcommand{\LL}{{\mathbf L}}
+\newcommand{\V}{{\mathbf V}}
+\newcommand{\Vi}{{\mathbf V}^{-1}}
+\newcommand{\aaa}{{\mathbf a}}
+\newcommand{\bb}{{\mathbf b}}
+\newcommand{\cc}{{\mathbf c}}
+\newcommand{\dd}{{\mathbf d}}
+\newcommand{\ff}{{\mathbf f}}
+\newcommand{\kk}{{\mathbf k}}
+\newcommand{\I}{{\mathbf I}}
+\newcommand{\mm}{{\mathbf m}}
+\newcommand{\nn}{{\mathbf n}}
+\newcommand{\pp}{{\mathbf p}}
+\newcommand{\qq}{{\mathbf q}}
+\newcommand{\ttt}{{\mathbf t}}
+\newcommand{\uu}{{\mathbf u}}
+\newcommand{\vv}{{\mathbf v}}
+\newcommand{\x}{{\mathbf x}}
+\newcommand{\y}{{\mathbf y}}
+
+\newcommand{\expe}{{\mathrm e}}
+\newcommand{\sign}{\mathrm{sgn}}
+\newcommand{\sech}{\mathrm{sech \,}}
+\newcommand{\csch}{\mathrm{csch \,}}
+\newcommand{\bfz}{{\mathbf 0}}
+
+
+\title{Rotating Shallow Water Dynamics Theory\\ Notes for E\&PS Fluids II}
+\author{T. W. N. Haine}
+\address{Earth \& Planetary Sciences, \\
+Johns Hopkins University, \\
+Baltimore, MD USA}
+\email{Thomas.Haine@jhu.edu}
+\date{\today} 
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+
+These are notes from 270.653 Earth \& Planetary Sciences Fluids II, taught in 2021, plus several extensions and links to literature.
+Software (MATLAB scripts, Live Scripts, Julia codes and Jupyter notebooks) is provided to test the theory and visualize the results.
+
+Sections \ref{sect:heuristic_RSW}--\ref{sect:heuristic_RSW_N2} are heuristic treatments.
+Sections \ref{sect:formal_RSW}--\ref{sect:formal_general} are more formal treatments (subsections \ref{sect:infinite_plane}--\ref{sect:infinite_channel} are analytic, \ref{sect:closed_domain} is numerical).
+Table \ref{tab:codes} itemizes MATLAB and Julia codes and solutions.
+
+\begin{table}[t]
+\scriptsize
+\centering
+\begin{tabular}{|| l l l  ||} 
+ \hline
+Filename & Type & Notes \\ [0.5ex] 
+ \hline\hline
+ \texttt{RSW\_theory.mlx} & Live Script & Theory from sections \ref{sect:heuristic_RSW} and \ref{sect:heuristic_RSW_N2} \\
+\texttt{RSW\_adjustment.mlx} &  Live Script & Theory from sections \ref{sect:formal_RSW} and \ref{sect:formal_general}  \\ 
+\texttt{Numerical\_RSW\_infinite\_plane} &  Directory & Solves numerical problem in section \ref{sect:infinite_plane}  \\ 
+\texttt{plot\_infinite\_channel\_solution.mlx} &  Live Script  & Solves numerical problem in section \ref{sect:infinite_channel}  \\ 
+\texttt{Numerical\_RSW\_arbitrary\_domain} &  Directory  & Solves numerical problem in section \ref{sect:closed_domain} using \texttt{Oceananigans} and \texttt{gridap}  \\ 
+\texttt{RSW\_channel\_adjustment.ipynb} &  Notebook & \texttt{Oceananighans} solution to adjustment problem \\ 
+\texttt{Numerical\_RSW\_arbitrary\_domain\_time\_dependent.ipynb} &  Notebook & \texttt{gridap} solution to adjustment problem via modal reconstruction\\ 
+\texttt{RSW\_ModelFunctions.jl} &  Code & Julia functions for adjustment problem \\ 
+\texttt{Testing\_theory.mlx} & Live Script & Various analytic tests for section \ref{sect:formal_general} and \ref{sect:infinite_channel}\\
+\texttt{Vertical modes} & Directory & Symbolic and numerical vertical modes\\
+\texttt{Rossby waves} & Directory & Dispersion relation script\\
+\texttt{RSW\_adjustment\_movie.key} &  Keynote & Visualizations of adjustment for several examples, plus comments\\ 
+ [1ex] 
+ \hline
+\end{tabular}
+\caption{Table of MATLAB and Julia codes and solutions.}
+\label{tab:codes}
+\end{table}
+
+%\clearpage
+\section{Linear Waves in the One Layer Rotating Shallow Water System}
+\label{sect:heuristic_RSW}
+
+\subsection{Velocity Component Form}
+In terms of velocity components, the one linear layer rotating shallow water (RSW) system is:
+\begin{mymathbox}[ams align, title=Linear 1-layer RSW Equations in Velocity Component Form, colframe=black!30!black]
+\frac{\partial u}{\partial t }  - f v &= -g \frac{\partial \eta}{\partial x} , \nonumber  \\
+\frac{\partial v}{\partial t }  +f u &= -g \frac{\partial \eta}{\partial y} ,  \nonumber \\
+\frac{\partial \eta}{\partial t } + H \left( \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} \right) &= 0 .
+\label{eqn:linear_RSW_vel_comp_form}
+\end{mymathbox}
+Seek wave solutions of the form $u = \Re \left[ u_0 \exp i( k x + l y - \omega t) \right]$ etc. (this is the method of separation of variables for an equation with constant coefficients).
+The solution structures (polarization relations) are given by the eigenvectors of the associated matrix and the solution frequencies are the eigenvalues:
+\begin{equation}
+\begin{pmatrix}
+        0 & - f &  i k g  \\
+        f  & 0 &  i l g  \\
+i k H & i l H &  0
+\end{pmatrix} 
+\begin{pmatrix}
+u_0 \\
+v_0 \\
+\eta_0
+\end{pmatrix} = i \omega 
+\begin{pmatrix}
+u_0 \\
+v_0 \\
+\eta_0
+\end{pmatrix}   .
+\end{equation}
+
+Hence (see \texttt{RSW\_theory.mlx}) the dispersion relation is
+\begin{mymathbox}[ams align, title=1-layer RSW Dispersion Relation, colframe=black!30!black]
+\omega \left( g H K^2  - \omega^2 + f^2 \right) = 0   .
+\end{mymathbox}
+The non-dimensional $\left( u, v, \eta \right)^T$ polarization relations are:
+\begin{align}
+\begin{pmatrix}
+0 \\
+i K \\
+1
+\end{pmatrix} , \text{~~~}
+ \begin{pmatrix}
+\pm \sqrt{K^2 + 1} \\
+- i/ K \\
+1
+\end{pmatrix} ,  
+\end{align}
+for the $\omega = 0$ (geostrophic) and $\omega = \pm \sqrt{K^2 + 1}$ (IGW) modes, respectively.
+The non-dimensionalization uses $f$ for frequency and $\sqrt{g H}/f$ for lengthscale (see \citealt{gill76}).
+
+\subsection{Vorticity and Divergence Form}
+With vorticity and divergence, the one-layer RSW system is:
+\begin{mymathbox}[ams align, title=Nonlinear 1-layer RSW Equations in Vorticity and Divergence, colframe=black!30!black]
+\frac{D }{D t } \left( \zeta + f\right) + \left( \zeta + f \right) \delta &= 0   \\
+\frac{D }{D t } \delta +  \delta^2 - f \zeta &= -g \nabla^2 \eta    \\
+\frac{D }{D t } h + h \delta &= 0   .
+\end{mymathbox}
+Linearizing gives
+\begin{mymathbox}[ams align, title=Linear 1-layer RSW Equations in Vorticity and Divergence, colframe=black!30!black]
+\frac{\partial }{\partial t }  \zeta  +  f \delta &= 0   \nonumber \\
+\frac{\partial }{\partial t } \delta  - f \zeta &= -g \nabla^2 \eta   \nonumber  \\
+\frac{\partial }{\partial t } \eta + H \delta &= 0   .
+\label{eq:lin_vort_div_RSW}
+\end{mymathbox}
+
+This form gives the same frequencies as before and
+\begin{align}
+\begin{pmatrix}
+K^2 \\
+0 \\
+1
+\end{pmatrix} , \text{~~~}
+\begin{pmatrix}
+1 \\
+\pm \sqrt{K^2 + 1} \\
+1
+\end{pmatrix} ,  
+\end{align}
+for the $\left( \zeta, \delta, \eta \right)^T$ modal structures (see \texttt{RSW\_theory.mlx}). 
+
+\subsection{RSW Equations in Fast (IGW) and Slow (PV) variables}
+\label{sect:fast_slow}
+These notes are more formal and complete because the derivation of the RSW equations in fast/slow variables is less common than it is in velocity and vorticity/divergence form.
+Following \citet{ring09} (see also \citealt{jones02}), we rearrange the 1-layer vorticity-divergence form of the RSW system as follows:
+Non-dimensionalize (\ref{eq:lin_vort_div_RSW}) to give
+\begin{align}
+\frac{\partial \zeta}{\partial t }    +  \frac{ \delta}{\epsilon} &= 0  , \\
+\frac{\partial \delta}{\partial t }   - \frac{\zeta}{\epsilon} + \frac{1}{\epsilon} \nabla^2 \eta & = 0 ,   \\
+\frac{\partial \eta}{\partial t }  + \frac{1}{\epsilon F} \delta &= 0   ,
+\label{eqn:lin_vort_div_RSW_nondim}
+\end{align}
+where $\epsilon = U/ f L$ is the Rossby number, $F= f^2 L^2 / (g H)$ is the inverse Froude number, and variables are now non-dimensional.\footnote{These equations are in a different form to (\ref{eq:lin_vort_div_RSW}) because the Rossby number appears. How are they exactly connected?   
+Presumably, one assumes geostrophic flow, $f U = g \Delta_\eta / L$, which implies $\epsilon = F \Delta_\eta / H $.
+%Presumably, the velocity scale here, $U$, is distinct from the velocity scale in (\ref{eq:lin_vort_div_RSW}), where it is $f L$. This implies $\epsilon = 1$.
+} 
+The boundary conditions are impermeable walls, $\uu \cdot \nn = 0$ for outward normal vector $\nn$ on boundary ${\partial \Omega}$ which encloses (simply-connected) domain $\Omega$, and 
+\begin{align}
+\int_\Omega \eta \, d \x = 0 .
+\end{align}
+Define a streamfunction and velocity potential so that
+\begin{align}
+\uu &= \kk \times \nabla \Psi + \nabla \chi_a , \nonumber \\
+& \equiv  \nabla^\perp \Psi + \nabla \chi_a , 
+\end{align}
+where
+\begin{align}
+ \Psi & = \Psi_g + \Psi_a
+\end{align}
+separates the streamfunction into geostrophic and ageostrophic parts (the velocity potential is entirely ageostrophic) and
+\begin{align}
+\zeta & = \nabla^2 \Psi ,\\
+\delta & = \nabla^2 \chi_a .
+\end{align}
+PV is $Q = \zeta - F \eta $ (from the non-dimensional (\ref{eqn:initial_PV})) and the geostrophic streamfunction is defined as
+\begin{align}
+Q & = \left( \nabla^2 - F \right) \Psi_g , \\
+\Psi_g | _{\partial \Omega} & = 0 .
+\end{align}
+The departure from geostrophy $\eta'$ is
+\begin{align}
+\eta' & = F \left( \eta - \Psi_g \right) , \label{eqn:etap_definition} \\
+& = \nabla^2 \Psi_a ,
+\end{align}
+which follows from the previous definitions.
+Thus, substitute (from the definition of PV and $\eta'$)
+\begin{align}
+\zeta & = Q + F \Psi_g + \eta' , \\
+\eta & = \frac{\eta'}{F} + \Psi_g
+\end{align}
+into (\ref{eqn:lin_vort_div_RSW_nondim}) to give
+\begin{align}
+\frac{\partial }{\partial t } \left( Q + F \Psi_g + \eta'  \right) +  \frac{ \delta}{\epsilon} &= 0  , \\
+\frac{\partial \delta}{\partial t }   - \frac{Q + F \Psi_g + \eta'  }{\epsilon} + \frac{1}{\epsilon} \nabla^2 \left( \frac{\eta'}{F} + \Psi_g \right) & = 0 ,   \\
+\frac{\partial }{\partial t }\left( \frac{\eta'}{F} + \Psi_g \right)  + \frac{1}{\epsilon F} \delta &= 0  .
+\end{align}
+Thus, 
+\begin{mymathbox}[ams align, title=Linear 1-layer RSW Equations in Fast and Slow Variables, colframe=black!30!black]
+\frac{\partial Q }{\partial t }   &= 0  , \\
+\epsilon F \frac{\partial \delta}{\partial t }  +  \left( \nabla^2 - F \right) \eta' & = 0 ,   \\
+\epsilon \frac{\partial \eta'}{\partial t } + \delta  &= 0  .
+\end{mymathbox}
+This separates the slow geostrophic (PV) component from the fast IGW components.
+
+From $Q, \delta, \eta'$, the original fields are constructed by:
+\begin{align}
+\nabla^2 \chi_a & = \delta, \hspace{1cm} \left. \partial_n \chi_a \right|_{\partial \Omega} = 0 , \\
+\nabla^2 \Psi_a & = \eta', \hspace{1cm} \left. \Psi_a \right|_{\partial \Omega} = 0 , \\
+\left(\nabla^2 - F \right) \Psi_g  & = Q, \hspace{1cm} \left. \Psi_g \right|_{\partial \Omega} = 0 , \\
+\Psi & = \Psi_g + \Psi_a , \\
+\uu & = \nabla^\perp \Psi + \nabla \chi_a , \\
+\eta & = \frac{\eta' + \Psi_g}{\epsilon} .
+\end{align}
+
+Assuming oscillatory time dependence as $\expe^{- i \omega t}$ gives
+\begin{align}
+\nabla^2  \eta'  + F \left( \epsilon^2 \omega^2 - 1 \right) \eta' & = 0 , \\
+\delta & = i \epsilon \omega \eta' ,
+\end{align}
+where the $\eta'$ and $\delta$ fields are understood to now vary only over $\x$.
+The boundary condition on the $\eta'$ equation follows from (\ref{eqn:etap_definition}) and the boundary condition on $\eta$, namely, 
+\begin{align}
+\left. \partial_n \eta \right|_{\partial \Omega} &= u_t , \\
+\implies
+\left. \partial_n \eta' \right|_{\partial \Omega} &= F \left(  \partial_s \chi_a |_{\partial \Omega} + \partial_n \Psi_a |_{\partial \Omega} \right) , 
+\end{align}
+where $u_t = \left. \nabla^\perp \uu \right|_{\partial \Omega}$ is the tangential velocity component along the wall measured by distance $s$.
+Thus the full set of equations is
+\begin{mymathbox}[ams align, title=Diagonalized Linear 1-layer RSW Equations in Fast and Slow Variables, colframe=black!30!black]
+\nabla^2  \eta'  + F \left( \epsilon^2 \omega^2 - 1 \right) \eta' & = 0 , \hspace{1cm} \left. \partial_n \eta' \right|_{\partial \Omega} = F \left(  \partial_s \chi_a |_{\partial \Omega} + \partial_n \Psi_a |_{\partial \Omega} \right) , \nonumber \\
+\nabla^2 \chi_a & = i \epsilon \omega \eta' , \hspace{1cm} \left. \partial_n \chi_a \right|_{\partial \Omega} = 0 , \nonumber  \\
+\nabla^2 \Psi_a & = \eta', \hspace{1cm} \left. \Psi_a \right|_{\partial \Omega} = 0 ,
+\label{eqn:diagonal_1layer_RSW}
+\end{mymathbox}
+which is consistent with \citet{ring09} (86)--(91).\footnote{\label{footnote:close_to_canonical_form}
+This system is close to the MATLAB PDE canonical form, but not exactly!  \\
+See: \texttt{www.mathworks.com/matlabcentral/answers/854635-limits-of-pde-eigen-solver-solvepdeig?s\_tid=prof\_contriblnk}.
+The main issue lies in the $\omega$ and $\omega^2$ eigenvalue terms. 
+MATLAB can (apparently) handle one or the other, but not both.
+Presumably, the \texttt{gridap} Julia package can manage this form (not explored).}
+
+
+\section{RSW Dynamics with Boundaries: Kelvin Waves}
+Now consider an impermeable vertical zonal boundary at $y=0$, where $v = 0$.
+Consider solutions for $y>0$ that satisfy $v=0$ for all $y$ for all time. Their form is:
+\begin{align}
+\begin{pmatrix}
+u \\
+v \\
+h - H
+\end{pmatrix} = 
+\begin{pmatrix}
+u_0 \\
+0 \\
+h_0
+\end{pmatrix}
+\Re \left\{
+\exp \left[ i ( k x - \omega t ) \right] F(y)
+\right\}   .
+\end{align}
+
+Hence,
+\begin{align}
+\begin{pmatrix}
+        - i \omega & g i k  \\
+        H i k  &  - i \omega
+\end{pmatrix} 
+\begin{pmatrix}
+u_0 \\
+h_0
+\end{pmatrix} &= \bfz    , \\
+\omega^2 + g H k^2 &= 0 ,    \\
+\frac{\omega}{k} &= \pm \sqrt{g H} ,   
+\end{align}
+and
+\begin{equation}
+u_0 f F(y) = - g F'(y) h_0 
+\end{equation}
+from the $y$ momentum equation.
+
+Thus,
+\begin{equation}
+\frac{F'(y)}{F(y)} = - \frac{f}{g} \left( \pm \sqrt{\frac{g}{H}} \right) = \mp \frac{f}{\sqrt{gH}} = \mp L_{\rho}^{-1}  
+\end{equation}
+because
+\begin{equation}
+\frac{u_0}{h_0} = \pm \sqrt{\frac{g}{H}} . 
+\end{equation}
+
+Only the positive root with decaying $h$ away from the wall is physically relevant. 
+Hence, 
+\begin{mymathbox}[ams align, title=Kelvin Wave, colframe=black!30!black]
+F(y) &= F_0 \exp \left( y / L_{\rho} \right) ,   \\
+\frac{\omega}{k} &= - \sqrt{g H} ,  
+\end{mymathbox}
+and phase propagation is along the wall with the wall to the right in the northern hemisphere.
+
+\section{Two Layer RSW System}
+\label{sect:heuristic_RSW_N2}
+
+The two-layer flat-bottom Boussinesq $f$-plane RSW system reads (students: check and see \texttt{RSW\_theory.mlx} and \citealt{vallis06} section 3.3):
+\begin{mymathbox}[ams align, title=2-Layer RSW Equations in Velocity Component Form, colframe=black!30!black]
+\frac{D }{D t } u_1 - f v_1 &= -g \left( \frac{\partial h_1}{\partial x} + \frac{\partial h_2}{\partial x} \right)   \label{eqn:u1_mom_Neq2} \\
+\frac{D }{D t } v_1 +f u_1 &= -g \left( \frac{\partial h_1}{\partial y} + \frac{\partial h_2}{\partial y} \right)    \\
+\frac{D }{D t } h_1 + h_1 \left( \frac{\partial u_1}{\partial x} + \frac{\partial v_1}{\partial y} \right) &= 0   \\
+\frac{D }{D t } u_2 - f v_2 &= -g \left( \frac{\partial h_1}{\partial x} + \frac{\partial h_2}{\partial x} \right)  - g' \frac{\partial h_2}{\partial x}   \\
+\frac{D }{D t } v_2 +f u_2 &= -g \left( \frac{\partial h_1}{\partial y} + \frac{\partial h_2}{\partial y} \right)  - g' \frac{\partial h_2}{\partial y}   \\
+\frac{D }{D t } h_2 + h_2 \left( \frac{\partial u_2}{\partial x} + \frac{\partial v_2}{\partial y} \right) &= 0   \label{eqn:h2_cont_Neq2}
+\end{mymathbox}
+with reduced gravity
+\begin{equation}
+g' = g \frac{\rho_2 - \rho_1}{\rho_0}  .
+\end{equation}
+
+Linear non-rotating waves on the infinite plane satisfy (students: check):\footnote{See Appendix \ref{app:Nlayer_diagonalization} for the case of an arbitrary rotating domain and \texttt{RSW\_theory.mlx} for the arbitrary rotating case on the infinite plane.}
+\begin{align}
+\begin{pmatrix}
+        - i \omega & g i k &  0 & g i k \\
+        H_1 i k  & - i \omega &  0 & 0 \\
+          0 &  g i k &  - i \omega & i k (g + g') \\
+          0 & 0 & i k H_2 & - i \omega
+\end{pmatrix} 
+\begin{pmatrix}
+u_1 \\
+h_1 \\
+u_2 \\
+h_2
+\end{pmatrix} = \bfz    .
+\end{align}
+
+Hence, non-trivial solutions satisfy (students: check):
+\begin{mymathbox}[ams align, title=2-Layer RSW Dispersion Relation, colframe=black!30!black]
+\left( \omega^2 \right) ^2 - \omega ^2 \left\{ k^2 \left[ \left( g + g' \right) H_2 + g H_1 \right] \right\} + {g'} ^2 H_1 H_2 k^4  = 0 .  
+\end{mymathbox}
+
+Or, for $H_1 = H_2 = H$ and $g' / g \ll 1$ (students: check):
+\begin{equation}
+\omega^2 \approx k^2 g H \left( 1  \pm  \sqrt{1 - g' / g} \right)  ,
+\end{equation}
+and (students: check)
+\begin{equation}
+\frac{h_1}{h_2} = - \frac{1}{2 g} \left( g' \pm \sqrt{4 g^2 + {g'}^2 } \right) \approx \mp 1  .
+\end{equation}
+
+
+\section{Adjustment in the RSW System and Formal Solution on the Infinite Plane}
+\label{sect:formal_RSW}
+
+Consider the RSW adjustment problem from an arbitrary initial condition with linear dynamics.\footnote{Students: This derivation is a model solution to the 2021 Homework 1 bonus question.}
+The velocity component equations are (\ref{eqn:linear_RSW_vel_comp_form}):
+\begin{align}
+\frac{\partial u}{\partial t }  - f v &= -g \frac{\partial \eta}{\partial x}  , \\
+\frac{\partial v}{\partial t }  +f u &= -g \frac{\partial \eta}{\partial y}  ,  \\
+\frac{\partial \eta}{\partial t } + H \left( \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} \right) &= 0   .
+\end{align}
+The initial conditions at $t=0$ are $(u_i, v_i, \eta_i)$, which are functions of $(x,y)$.
+The problem is to be solved first in the infinite $(x,y)$ plane (this section and section \ref{sect:infinite_plane}) and then with boundaries (sections \ref{sect:infinite_channel}, \ref{sect:closed_domain}).
+
+Fourier transform the equations in $x$ and $y$, where
+\begin{align}
+{\mathcal F}_x \left[ u (x, y, t) \right] (k,y,t) &= \int_{-\infty}^{\infty} u (x,y,t) \expe ^{-i k x} \; dx ,   \\
+{\mathcal F}_y \left[ u (x, y, t) \right] (x,l,t) &= \int_{-\infty}^{\infty} u (x,y,t) \expe ^{-i l y} \; dy ,   \\
+\implies {\mathcal F}_y \left[ {\mathcal F}_x \left[ u (x, y, t) \right] \right] (k,l,t) \equiv {\mathcal F}_{xy} \left[ u (x, y, t) \right] = \hat{u} &= \iint u (x,y,t) \expe ^{-i (k x + l y)} \; dx \; dy  
+\label{eq:Fourier_def}
+\end{align}
+(using the \citealt{haberman87} and MATLAB convention for the Fourier transform, which is called the non-unitary angular frequency convention).
+% https://en.wikipedia.org/wiki/Fourier_transform#Other_conventions
+Hence, the transformed dynamical equations read\footnote{Note that ${\mathcal F}_x \left[ \partial f / \partial x \right] = i k \hat{f}$ (regardless of the Fourier transform convention).
+% See: https://en.wikipedia.org/wiki/Fourier_transform#Functional_relationships,_one-dimensional
+}
+\begin{align}
+\frac{\partial \hat{u} }{\partial t }  - f \hat{v}  &= - i k g \hat{\eta}   \\
+\frac{\partial \hat{v} }{\partial t }  +f \hat{u}  &= - i l g \hat{\eta}     \\
+\frac{\partial \hat{\eta} }{\partial t } + i H \left( k \hat{u}  + l \hat{v}  \right) &= 0   , \\
+\implies 
+\frac{d}{d t} \begin{pmatrix}
+\hat{u} \\
+\hat{v} \\
+\hat{\eta} \\
+\end{pmatrix} & = 
+\begin{pmatrix}
+        0 & f &  - g i k \\
+      - f  & 0 &  - g i l \\
+- i k H &  - i l H &  0
+\end{pmatrix} 
+\begin{pmatrix}
+\hat{u} \\
+\hat{v} \\
+\hat{\eta} \\
+\end{pmatrix} ,  
+\end{align}
+where $\hat{u} = {\mathcal F}_{xy}[ u ]$ etc.
+This is a system of linear coupled ordinary differential equations for 
+\begin{align}
+\frac{d \hat{\y}}{d t} &= \A \hat{\y} ,  \\
+\hat{\y} &= \begin{pmatrix}
+\hat{u} \\
+\hat{v} \\
+\hat{\eta} \\
+\end{pmatrix} ,   \\
+\A &= -\begin{pmatrix}
+0 & - f &  g i k \\
+f  & 0 &  g i l \\
+i k H &  i l H &  0
+\end{pmatrix} .  
+\end{align}
+The solution is
+\begin{align}
+\hat\y(k, l, t) & = \expe ^{\A t} \hat\y_i ,  
+\end{align}
+where $\expe ^{\A t}$ is the matrix exponential and $\hat \y_i = \hat\y (t=0) = ( \hat{u}_i, \hat{v}_i, \hat{\eta}_i) ^T$ is the $(x,y)$ Fourier transform of the initial conditions.
+The matrix exponential is written using an eigendecomposition to isolate the time dependence:
+\begin{equation}
+\expe ^{\A t} = \V \expe ^{\mu t} \Vi ,  
+\label{eq:expm_identity}
+\end{equation}
+where
+\begin{align}
+\A \V &= \V \Omega   
+\label{eq:eigen_decomp}
+\end{align}
+is the eigendecomposition of $\A$ into a matrix of orthogonal eigenvectors $\V$ (down the columns) and eigenvalues $\Omega$:\footnote{The non-dimensionalized $\A$ is skew-Hermitian, therefore its eigenvalues are zero or pure imaginary and its eigenvectors are orthogonal.}
+% https://en.wikipedia.org/wiki/Skew-Hermitian_matrix
+\begin{align}
+\V & = \begin{pmatrix}
+\vv_1 & \vv_2 & \vv_3
+\end{pmatrix}  = 
+\begin{pmatrix}
+- i g l / f & (\phantom{-} i f l - \omega k )/(H K^2) & (\phantom{-}i  f l + \omega k )/(H K^2) \\
+\phantom{-} i g k / f &  (- i f k - \omega l) /(H K^2) & (- i f k + \omega l )/(H K^2) \\
+1 & 1 & 1
+\end{pmatrix} ,   \\
+\Omega & = i \begin{pmatrix}
+0 & 0 & 0 \\
+0 & \omega & 0 \\
+0 & 0 &-\omega
+\end{pmatrix} =
+i \begin{pmatrix}
+0 & 0 & 0 \\
+0 & \sqrt{f^2 + gH K^2} & 0 \\
+0 & 0 &- \sqrt{f^2 + gH K^2}
+\end{pmatrix}
+\end{align}
+(see \texttt{RSW\_adjustment.mlx}).
+The final solution is therefore
+\begin{mymathbox}[ams align, title=Formal Solution to 1-Layer RSW Adjustment on the Infinite Plane, colframe=black!30!black]
+\y (x,y,t) & =  {\mathcal F}_{xy}^{-1} \left[ \expe ^{\A t} \hat{\y}_i \right] ,   \nonumber \\
+&= {\mathcal F}_{xy}^{-1} \left[ \V \expe ^{\Omega t} \Vi \hat{\y}_i \right] ,  
+\end{mymathbox}
+where the inverse Fourier transform is
+\begin{align}
+{\mathcal F}_{xy}^{-1} \left[ \hat{u} \right] = \frac{1}{4 \pi^2} \iint \hat{u} (k,l,t) \expe ^{i (k x + l y)} \; dk \; dl .  
+\label{eq:inv_Fourier_def}
+\end{align}
+The term $\V^{-1} \hat{\y}_i$ computes the amplitudes of the three eigenvectors $\vv_1, \vv_2, \vv_3$ (i.e., the geostrophic and IGW modes); left multiplication by $\expe^{\Omega t}$ advances them in time by $t$; and left multiplication by $\V$ maps back into $\{ u, v, \eta \}$ space.
+
+We also follow particle trajectories $(x(t),y(t))$ in the flow via:
+\begin{align}
+\frac{d}{d t}
+\begin{pmatrix}
+x \\
+y
+\end{pmatrix} & =
+\begin{pmatrix}
+u \\
+v
+\end{pmatrix}
+\end{align}
+from initial position $(x_i, y_i)$ at $t=0$.
+Animations of the adjustment process are at \texttt{RSW\_adjustment\_movie.key}.
+
+\section{Adjustment Revisited and Formal Solution in General}
+\label{sect:formal_general}
+\citet{gill76} approaches the adjustment problem differently, in an insightful way (see also \citealt{gill82}, section 7.2; \citealt{vallis06}, section 3.8; \citealt{salmon98}, section 2.9; \citealt{pedlosky13}, Lecture 13).
+The analysis is based on \citet{rossby37,rossby38}.
+The key is to separate the coupled differential equations and exploit PV conservation.
+This leads to valuable insight for solving the RSW problem in general, for example in bounded domains.
+Indeed, \citet{thomson1880} used this approach to discover Kelvin waves in a channel\footnote{Did Kelvin \textit{predict} the existence of these waves before they were observed?} and \citet{taylor1922} used it to elucidate tidal oscillations in gulfs.
+
+The procedure works as follows:
+From the linear 1-layer RSW equations in vorticity/divergence form above (\ref{eq:lin_vort_div_RSW}), derive an equation for $\eta$:
+\begin{align}
+\frac{\partial^2 \eta}{\partial t^2 }  + H \frac{\partial}{\partial t} \delta &= 0   , \\
+\implies \frac{\partial^2 \eta}{\partial t^2 } + H f \zeta - g H \nabla^2 \eta &= 0   \label{eqn:intermediate_eta} \\
+\implies \frac{\partial^2 \eta}{\partial t^2 } - g H \nabla^2 \eta  + f^2 \eta&= - f^2 H Q_i    ,
+\end{align}
+where
+\begin{mymathbox}[ams align, title=Linear PV conservation, colframe=black!30!black]
+\frac{\partial}{\partial t} \left( \frac{\zeta}{f} - \frac{ \eta}{H}\right) &= 0 , \nonumber  \\
+\implies \frac{\zeta}{f} - \frac{\eta}{H} &= \frac{\zeta(t=0)}{f} - \frac{\eta(t=0)}{H} \equiv Q_i   
+\label{eqn:initial_PV}
+\end{mymathbox}
+is the linearized PV, which is conserved.
+This has uncoupled the $\eta$ equation from the $u$ and $v$ equations, which is a useful advance.
+\citet{gill82} shows how to use this equation to compute the adjusted $t \rightarrow \infty$ state once the transients have radiated by solving
+\begin{align}
+g H \nabla^2 \eta  - f^2 \eta&= f^2 H Q_i    ,
+\end{align}
+and hence finding the flow from geostrophy (students: see also Homework 1, question 3).
+
+Given the $\eta$ equation, uncoupled equations for $u$ and $v$ are found from the linear momentum equations by 
+\begin{align}
+\frac{\partial u}{\partial t }  - f v &= -g \frac{\partial \eta}{\partial x} ,   \\
+\frac{\partial v}{\partial t }  +f u &= -g \frac{\partial \eta}{\partial y}    \\
+\implies 
+\begin{pmatrix}
+\partial_t & -f \\
+f & \partial_t  \\
+\end{pmatrix}
+\begin{pmatrix}
+u \\
+v
+\end{pmatrix} & = 
+- g \begin{pmatrix}
+\eta_x \\
+\eta_y
+\end{pmatrix}  ,   \\
+\implies
+\left( \partial_{tt} + f^2 \right)\begin{pmatrix}
+u \\
+v
+\end{pmatrix} & = - g 
+\begin{pmatrix}
+\partial_t & f \\
+-f & \partial_t  \\
+\end{pmatrix}
+\begin{pmatrix}
+\eta_x \\
+\eta_y
+\end{pmatrix}   , \\
+\implies
+\frac{\partial^2 u}{\partial t^2} + f^2 u & = -g \frac{\partial^2 \eta}{\partial t \partial x} - g f \frac{\partial \eta}{\partial y} ,   \\
+\frac{\partial^2 v}{\partial t^2} + f^2 v & = g f \frac{\partial \eta}{\partial x} - g \frac{\partial^2 \eta}{\partial t \partial y} .  
+\end{align}
+Read the final matrix equation as ``$\partial_t$ of the $u$ equation plus $f$ times the $v$ equation gives an equation for $\partial_{tt} + f^2$ of $u$.''
+The $\partial_{tt} + f^2$ operator is the determinant of the matrix in the third line (see \texttt{RSE\_adjustment.mlx} for details).
+These formulae prescribe $u$ and $v$ given $\eta$ information.
+ 
+More generally, apply the uncoupling procedure to the full set of equations, without anticipating PV conservation:
+\begin{align}
+\frac{\partial u}{\partial t }  - f v &= -g \frac{\partial \eta}{\partial x} ,  \label{eqn:x_mom} \\
+\frac{\partial v}{\partial t }  +f u &= -g \frac{\partial \eta}{\partial y} ,   \label{eqn:y_mom} \\
+\frac{\partial \eta}{\partial t } + H \left( \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} \right) &= 0   .  \label{eqn:cont}
+\end{align}
+Hence, 
+\begin{align}
+\begin{pmatrix}
+\partial_t & -f & g \partial_x \\
+f & \partial_t  & g \partial_y \\
+H \partial_x & H \partial_y  & \partial_t
+\end{pmatrix}
+\begin{pmatrix}
+u \\
+v \\
+\eta
+\end{pmatrix} & = \bfz  ,  \label{eqn:RSW_decoupling} \\
+\implies
+\left( \partial_{ttt} - g H \partial_t \nabla^2 + f^2 \partial_t \right)\begin{pmatrix}
+u \\
+v \\
+\eta
+\end{pmatrix} & = \bfz  ,  \label{eqn:RSW_decoupling2}
+\end{align}
+where the $\partial_{ttt} - g H \partial_t \nabla^2 + f^2 \partial_t$ operator comes from the matrix determinant and corresponds to the eigen-frequencies of the geostrophic and IGW modes.
+One mode (the geostrophic one) has zero frequency, so integrate once over time to give
+\begin{mymathbox}[ams align, title=Klein-Gordon Equations for 1-Layer RSW Adjustment, colframe=black!30!black]
+\left( \partial_{tt} - g H \nabla^2 + f^2 \right)\begin{pmatrix}
+u \\
+v \\
+\eta
+\end{pmatrix} & = 
+f H \begin{pmatrix}
+\phantom{-}g \partial_y \\
+-g \partial_x \\
+-f 
+\end{pmatrix} Q_i.   
+\label{eqn:Klein_Gordon_form}
+\end{mymathbox}
+The right hand side is the constant given by the initial conditions, i.e., the initial PV, which satisfies geostrophic balance (see also \citealt{pratt&whitehead08} section 2.1).
+The $\partial_{tt} - g H \nabla^2 + f^2$ operator is a Klein-Gordon operator.
+
+The solution to the adjustment problem consists of a homogeneous time-dependent part and a steady (adjusted) particular solution, $\{ u_{\infty}, v_{\infty}, \eta_{\infty} \}$.
+Consider the time-dependent part first. 
+Seek oscillations with frequency $\omega$ (i.e., assume the time dependence is separable as $\expe^{- i \omega t}$).
+This gives
+\begin{align}
+\begin{pmatrix}
+u , 
+v ,
+\eta
+\end{pmatrix}^T & = \begin{pmatrix} u_{\infty}, 
+v_{\infty}, 
+\eta_{\infty} 
+\end{pmatrix}^T + \Re \left[ \expe^{-i \omega t}  \begin{pmatrix}
+U , 
+V ,
+E
+\end{pmatrix}^T \right]
+\label{eqn:gen_solution1}  \\
+& = \begin{pmatrix} u_{\infty}, 
+v_{\infty}, 
+\eta_{\infty} 
+\end{pmatrix}^T + \Re \begin{pmatrix}
+U , 
+V ,
+E
+\end{pmatrix}^T \cos \omega t +
+\Im \begin{pmatrix}
+U , 
+V ,
+E
+\end{pmatrix}^T \sin \omega t 
+\end{align}
+and therefore
+\begin{align}
+\left( g H \nabla^2 +  \omega^2 - f^2  \right)
+\begin{pmatrix}
+U , 
+V ,
+E
+\end{pmatrix}^T & = 
+\bfz ,   
+\end{align}
+which is a Helmholtz problem for the three fields $\{ U, V, E \}$ (functions of $(x,y)$ only).
+\citet{thomson1880} and \citet{taylor1922} state these equations, although they don't show the derivation and they assume $Q_i = 0$.
+See also \citet{gill76} and \citet{pratt&whitehead08} (section 2.1).
+The Green's function is a Hankel function (\citealt{duffy01}, page 276--279).
+%The matrix inverse method above can be generalized to uncouple the $N$-layer RSW equations (see \texttt{RSW\_theory.mlx} for $N=2$).
+With boundaries, the problem can be solved analytically for simple geometries, otherwise, numerical methods are required (section \ref{sect:closed_domain}).
+
+\subsection{Infinite Plane}
+\label{sect:infinite_plane}
+The infinite plane works as follows, and provides a template for other cases:
+Proceed by applying a Fourier transform in $x$ to the Helmholtz equations:\footnote{Because the domain is infinite in $x$. We retain control over the domain in $y$ to handle the semi-infinite plane and the infinite channel (section \ref{sect:infinite_channel}).}
+\begin{align}
+\left[ g H \left( -k^2 + d_{yy} \right) + \omega^2 - f^2 \right]
+\begin{pmatrix}
+\hat{U}, \hat{V}, \hat{E}
+\end{pmatrix}^T & = \bfz,    \\
+\implies
+\left( d_{yy}  - k^2 + \frac{\omega^2 - f^2}{g H}\right) 
+\begin{pmatrix}
+\hat{U}, \hat{V}, \hat{E}\end{pmatrix}^T& = \bfz ,   \\
+\implies
+\left( d_{yy}  + l^2 \right) 
+\begin{pmatrix}
+\hat{U}, \hat{V}, \hat{E}\end{pmatrix}^T & = \bfz .   
+\label{eq:infinite_x_Helmholtz}
+\end{align}
+using the definition of the Fourier transform (\ref{eq:Fourier_def}) and writing $\hat{V}$ to now mean $\hat{V}(k,y) = {\mathcal F}_x [ V(x,y) ]$.
+These are uncoupled ordinary differential equations for $\{ \hat{U}, \hat{V}, \hat{E} \}$.
+The solutions are of the form
+\begin{align}
+c_\pm (k) \exp \left( \pm i l y \right) ,  
+\end{align}
+where $c_\pm$ are complex functions of $k$ (for each field) set by the original coupled equations, the initial conditions, and the boundary conditions (see \texttt{RSW\_adjustment.mlx} and below).
+Physically, the modes are IGWs with $y$ wavenumber $l$, where $l^2 = (\omega^2 - f^2)/(gH) - k^2$.
+
+Therefore,  $\{ U, V, E \}$ solutions have the form
+\begin{align}
+\int c_\pm (k) \exp \left( \pm i l y + i k x  \right)  dk,
+\end{align}
+using the definition of the inverse Fourier transform (\ref{eq:inv_Fourier_def}).
+The general solution consists of a continuous superposition of these expressions, which is formed by integration over $\l$ where the coefficients $c_\pm$ are now also functions of $l$.
+For example, 
+\begin{align}
+E (x, y) & = \frac{1}{4 \pi^2} \int _0 ^{\infty} \int_{-\infty}^{\infty} c_\pm (k,l) \exp \left( \pm i l y + i k x  \right) \; dk \; dl ,   \\
+& = \frac{1}{4 \pi^2} \int _{-\infty} ^{\infty} \int_{-\infty}^{\infty} c (k,l) \exp  \left[ i \left( k x + l y \right) \right] \; dk \; dl ,   \\
+& = {\mathcal F}^{-1}_{xy} \left[ c (k , l) \right] ,  
+\end{align}
+which uses the fact that $l > 0$ to replace the integral over positive $l$ of $c_{\pm} (k,l) \exp(\pm i l y ) $ with the integral over all $l$ of $c (k,l) \exp (i l y) $ (see \citealt{haberman87}, section 9.2).
+
+The $c(k,l)$ functions are found from the initial condition and (\ref{eqn:gen_solution1}) evaluated at $t=0$.
+For example,
+\begin{align}
+\eta_i & = \eta_{\infty} + \Re \left\{ E \right\} , \label{eqn:inf_plane_eta_i}  \\
+& = \eta_{\infty} + \Re \left\{ {\mathcal F}^{-1}_{xy} \left[ c (k,l)  \right]  \right\} .  
+\end{align}
+Applying the ${\mathcal F}_{x,y}$ transform to both sides and writing $c = a + i b$ for real fields $a (k,l)$ and $b (k,l)$ gives
+\begin{align}
+{\mathcal F}_{xy} \left[ \eta_i  - \eta_{\infty} \right] & = \frac{1}{4 \pi^2} \iint \exp \left[ - i \left( k' x + l' y \right)\right] 
+\Re \left\{ \iint c(k,l) \exp \left[ i \left( k x + l y \right) \right] dk \;dl
+\right\} dx \; dy ,  \label{eq:Fourier_detail} \\
+& = \frac{1}{8 \pi^2}
+\iiiint
+\left[ a(k,l) + i b (k,l)\right]  \exp \left\{ - i \left[ \left( k' - k \right) x + \left(l' - l \right) y \right] \right\}   \\
+&+ 
+\left[ a(k,l) - i b (k,l) \right] \exp \left\{ - i \left[ \left( k' + k \right) x + \left(l' + l \right) y \right] \right\}
+dx \; dy \; dk \; dl,   
+\end{align}
+using Euler's formula, taking real parts, and writing $2 \cos \xi = \expe^{i \xi} + \expe^{-i \xi}$, $ 2 i \sin \xi = \expe^{i \xi} - \expe^{-i \xi}$.
+The orthogonality relation
+\begin{align}
+\frac{1}{2 \pi} \int _{-\infty}^{\infty} \exp \left[ i (k - k') x \right] dx = \delta \left( k - k' \right) ,  
+\end{align}
+where $\delta( k - k' )$ is the Dirac delta function (not divergence), implies that
+\begin{align}
+a_\eta (k,l) + a_\eta (-k,-l) + i \left[ b_\eta (k,l) - b_\eta (-k,-l) \right] & =  2 {\mathcal F}_{xy} \left[ \eta_i  - \eta_{\infty} \right]
+\label{eqn:eta_coeffs_inf_plane}
+\end{align}
+(now including subscript $\eta$ on $a$ and $b$).
+
+Similarly, the $u$ and $v$ coefficients give:
+\begin{align}
+a_u(k,l) + a_u (-k,-l)  + i \left[ b_u (k,l) - b_u (-k,-l) \right] & = 2 {\mathcal F}_{xy} \left[ u_i  - u_{\infty} \right] ,   \\
+a_v(k,l) + a_v (-k,-l)  + i \left[ b_v (k,l) - b_v (-k,-l) \right] & = 2 {\mathcal F}_{xy} \left[ v_i  - v_{\infty} \right] .
+\end{align}
+Notice how the $a$ and $b$ fields, representing the IGWs, are proportional to the difference between the initial condition and the final (geostrophic) solution.
+
+The $a$ and $b$ fields also satisfy the coupled equations because they construct the homogeneous solution.
+This implies that
+\begin{align}
+\Re \left[
+\begin{pmatrix}
+- i \omega & -f & i g k \\
+f & - i \omega &  i g l \\
+i k H & i l H & - i \omega
+\end{pmatrix}
+\begin{pmatrix}
+c_u \\ c_v \\ c_\eta
+\end{pmatrix}
+\right] = {\bf 0} .  
+\end{align}
+Now, $\Re \left[ \A \y \right] \equiv \Re \left[ \A \right] \Re \left[ \y \right] - \Im \left[ \A \right] \Im \left[ \y \right]$ (students: check, e.g., in MATLAB).
+% E.g. This gives zeros to machine precision:
+% N = 128 ; A = rand(N) + 1i*rand(N); y = rand(N,1) + 1i*rand(N,1) ;
+% tmp = real(A)*real(y) - imag(A)*imag(y) - real(A*y) ; stats(tmp)
+Therefore, 
+\begin{align}
+\begin{pmatrix}
+0 & -f & 0 \\
+f & 0 & 0 \\
+0 & 0 & 0
+\end{pmatrix}
+\begin{pmatrix}
+a_u \\ a_v \\ a_\eta
+\end{pmatrix}
+& = 
+ \begin{pmatrix}
+- \omega & 0 &  g k \\
+0 & -  \omega &   g l \\
+ k H & l H & - \omega
+\end{pmatrix}
+\begin{pmatrix}
+b_u \\ b_v \\ b_\eta 
+\end{pmatrix} ,  
+\end{align}
+which is three more equations in the required $a_{u, v, \eta}, b_{u, v, \eta}$ fields.
+Note how the transient problem cannot be solved without the steady solution at infinite time.
+
+The particular solution for the steady part satisfies
+\begin{align}
+\left( \nabla^2 - \frac{f^2}{gH} \right)\begin{pmatrix}
+u_{\infty} \\
+v_{\infty} \\
+\eta_{\infty}
+\end{pmatrix} & = 
+f \begin{pmatrix}
+- \partial_y \\
+\phantom{-} \partial_x \\
+f/g 
+\end{pmatrix} Q_i ,  \\
+\implies
+\left( d_{yy} - k^2 - \frac{f^2}{gH} \right)\begin{pmatrix}
+\hat{u}_{\infty} \\
+\hat{v}_{\infty} \\
+\hat{\eta}_{\infty}
+\end{pmatrix} & = 
+f \begin{pmatrix}
+- \partial_y \\
+i k  \\
+f/g 
+\end{pmatrix} \hat{Q}_i .  
+\label{eqn:inf_plane_steady}
+\end{align}
+Therefore,
+\begin{align}
+\begin{pmatrix}
+\hat{u}_{\infty} \\
+\hat{v}_{\infty} \\
+\hat{\eta}_{\infty}
+\end{pmatrix} & = 
+\pm \frac{f}{2 l'}  \int^y \exp \left[ \pm l'\left( y - y' \right) \right]
+ \begin{pmatrix}
+- \partial_{y'} \\
+i  k \\
+f/g 
+\end{pmatrix} \hat{Q}_i (y')
+  \; d y' ,  
+\end{align}
+where $l'^2 = k^2 + f^2/(gH)$.
+The steady-state fields are obtained from the inverse Fourier transform of these expressions.
+Note that the transient problem does not need to be solved to find the steady-state geostrophic solution.
+This is a big advantage.
+
+\subsubsection*{Example:} \citet{gill76,gill82} lets $\eta_i = \Delta_\eta \, \sign (x), u_i = v_i = 0$.
+Then, $Q_i = -\sign (x) \Delta_\eta / H, \hat{Q}_i = 2 i \Delta_\eta / (k H), u_{\infty} = 0$ and
+\begin{align}
+\begin{pmatrix}
+\hat{v}_{\infty} \\
+\hat{\eta}_{\infty}
+\end{pmatrix} & = \pm \frac{f \Delta_\eta}{ l' H}  \int^y \exp \left[ \pm l'\left( y - y' \right) \right]
+ \begin{pmatrix}
+1\\
+i f / (k  g) \end{pmatrix} 
+  \; d y' ,   \\
+  & = - \frac{2 f \Delta_\eta}{ l'^2 H} 
+ \begin{pmatrix}
+1\\
+i f / (k  g) \end{pmatrix} .   
+\label{eq:inf_plane_steady_soln}
+\end{align}
+(neglecting integration constants; see \texttt{RSW\_adjustment.mlx}).
+Therefore, the inverse Fourier transform gives
+\begin{align}
+\begin{pmatrix}
+v_{\infty} \\
+\eta_{\infty}
+\end{pmatrix} & = - \frac{ f \Delta_\eta}{\pi H} 
+\int_{- \infty}^{\infty} \frac{\exp ( i k x ) }{k^2 + f^2/(gH)}
+ \begin{pmatrix}
+1\\
+i f / (k  g) \end{pmatrix} \; dk ,   \\
+& = \Delta_\eta \begin{pmatrix}
+- (f L_\rho /H) \exp \left( - |x| / L_\rho \right) \\
+\sign (x) \left[ 1 - \exp \left( - |x| / L_\rho \right)\right]  
+ \end{pmatrix}  .   
+\end{align}
+These are the results obtained by \citet{gill76,gill82}.
+
+Now solve for the transients in this case.
+For the $\eta$ field:
+\begin{align}
+a_\eta (k,l) + a_\eta (-k,-l) + i \left[ b_\eta (k,l) - b_\eta (-k,-l) \right]  & = 2 \Delta_\eta {\mathcal F}_{xy} \left[ \sign(x) \,   \exp \left( - |x| / L_\rho \right)  \right] ,   \\
+& = -i k \frac{8 \pi \Delta_\eta L_\rho^2 \, \delta (l) }{ 1 + k^2 L_\rho^2 }    
+\end{align}
+(see \texttt{RSW\_adjustment.mlx}), which implies that $a_\eta$ is an odd function and
+\begin{align}
+b_\eta & =  -k \frac{4 \pi \Delta_\eta L_\rho^2 \, \delta (l) }{ 1 + k^2 L_\rho^2 } .   
+\end{align}
+It follows that\footnote{Notice that the time-dependent part $\expe^{-i \omega t}$ must be included inside the inverse Fourier transform because $\omega$ is a function of $k$.}
+\begin{align}
+\eta (x, y, t) & = 
+\eta_{\infty} - \Re \left\{ \frac{1}{ \pi} \int _{-\infty} ^{\infty} \int_{-\infty}^{\infty} \left[ a_\eta + \frac{i \Delta_\eta L_\rho^2 \, \delta (l) \, k }{ 1 + k^2 L_\rho^2 } \right] \exp \left[ i \left( k x + l y - \omega t \right) \right] dk \; dl  \right\}.  
+\label{eqn:inf_plane_eg_eta_intermediate0}
+\end{align}
+Substituting for $\eta_{\infty}$ and $\omega = \pm f \sqrt{1 + L_\rho^2 ( k^ 2 + l^2) }$ and performing the $l$ integral gives:
+\begin{align}
+\frac{\eta}{\Delta_\eta}
+& = \sign(x) \left[ 1 - \exp \left( - \frac{|x|}{L_\rho} \right) \right] -
+\Re \left\{ \frac{1}{2 \pi} \int_{-\infty}^{\infty} \left[ a_\eta + \frac{i L_\rho^2  k}{ 1 + k^2 L_\rho^2 } \right] \exp \left[ i \left( k x \pm \sqrt{1 + k^2 L_\rho^2 } f t \right) \right] dk \right\} .  
+\label{eqn:inf_plane_eg_eta_intermediate}
+\end{align}
+The extra factor of two in the denominator of the term in brackets arises from the fact that both positive and negative frequencies contribute to the integrand. 
+To see this, set $t=0$ and check that $\eta(t=0) = \eta_i$.\footnote{Use
+\begin{align}
+\int_{0}^{\infty} \frac{ L_\rho^2 k}{ 1 + k^2 L_\rho^2 } \sin k x  \; dk  = \frac{\pi}{2} \sign(x) \exp \left(-\frac{|x|}{L_\rho} \right) .  
+\end{align}
+}
+The integral term is
+\begin{align}
+& \frac{1}{2 \pi} \int_{-\infty}^{\infty} \frac{ L_\rho^2 k}{ 1 + k^2 L_\rho^2 } \sin \left( k x \pm \sqrt{1 + k^2 L_\rho^2 } f t \right) dk ,    \\
+=& \frac{2}{\pi} \int_{0}^{\infty} \frac{ L_\rho^2 k}{ 1 + k^2 L_\rho^2 } \sin k x \cos\left( \sqrt{1 + k^2 L_\rho^2 } f t \right) dk ,   
+\end{align}
+because $a_\eta$ is odd, $\sin \left(k x + \omega t \right) + \sin \left(k x - \omega t \right) = 2 \sin k x \cos \omega t$ and the integrand is an even function of $k$.
+Therefore,
+\begin{mymathbox}[ams align, title=Infinite Plane Adjustment Example $\eta$ Solution, colframe=black!30!black]
+\frac{\eta }{ \Delta_\eta} & = \sign(x) \left[ 1 - \exp \left( - \frac{|x|}{ L_\rho} \right) \right] +
+\frac{2}{ \pi} \int_{0}^{\infty} \frac{ L_\rho^2 k}{ 1 + k^2 L_\rho^2 } \sin k x  \cos \left( \sqrt{1 + k^2 L_\rho^2 } f t \right) dk ,
+\label{eqn:inf_plane_eg_eta_soln}
+\end{mymathbox}
+which is \citeauthor{gill76}'s \citeyearpar{gill76} result (although he doesn't state it explicitly in this form).
+See \texttt{RSW\_adjustment.mlx} to check that the initial condition is satisfied by this expression.
+
+Similarly, for the $v$ field:
+\begin{align}
+a_v (k,l) + a_v (-k,-l) + i \left[ b_v (k,l) - b_v (-k,-l) \right]   & = \frac{f \Delta_\eta L_\rho }{2 \pi H} {\mathcal F}_{xy} \left[ \exp \left( - \frac{|x|}{L_\rho} \right)  \right] ,  \nonumber  \\
+& = \frac{f}{H} \frac{4 \pi \Delta_\eta L_\rho^2 \, \delta (l) }{1 + k^2 L_\rho^2 }   
+\label{eqn:inf_plane_eg_v_coeffs}
+\end{align}
+(see \texttt{RSW\_adjustment.mlx}).
+Therefore, 
+\begin{align}
+a_v & = \frac{f}{H} \frac{4 \pi \Delta_\eta L_\rho^2 \, \delta (l) }{1 + k^2 L_\rho^2 } ,   
+\end{align}
+and $b_v$ is an even function.
+It follows that
+\begin{align}
+v (x, y, t) & = 
+v_{\infty} + \Re \left\{ \frac{1}{\pi} \int _{-\infty} ^{\infty} \int_{-\infty}^{\infty} \left[ \frac{f \Delta_\eta L_\rho^2 \, \delta (l) }{H \left(1 + k^2 L_\rho^2  \right)} + i b_v \right] \exp \left[ i \left( k x + l y - \omega t \right) \right] dk \; dl \right\} .  
+\end{align}
+The integral term is
+\begin{align}
+& \frac{1}{2 \pi} \int_{-\infty}^{\infty} 
+\frac{f \Delta_\eta L_\rho^2 }{H \left(1 + k^2 L_\rho^2  \right)} \cos \left( k x \pm \sqrt{1 + k^2 L_\rho^2 } f t \right) dk ,   \\
+= & \frac{2}{ \pi} \int_{0}^{\infty} 
+\frac{f \Delta_\eta L_\rho^2 }{H \left(1 + k^2 L_\rho^2  \right)} \cos k x \cos \left( \sqrt{1 + k^2 L_\rho^2 } f t \right) dk ,  
+\end{align}
+because $b_v$ is an even function,  $\cos \left(k x + \omega t \right) + \cos \left(k x - \omega t \right) = 2 \cos k x \cos \omega t$, and the integrand is even.
+Therefore,
+\begin{mymathbox}[ams align, title=Infinite Plane Adjustment Example $v$ Solution, colframe=black!30!black]
+\frac{\sqrt{H/g} }{ \Delta_\eta } v  & = 
+ \frac{2}{ \pi} \int_{0}^{\infty}  
+\frac{ L_\rho }{1 + k^2 L_\rho^2  } \cos  k x \cos \left( \sqrt{1 + k^2 L_\rho^2 } f t \right) dk 
+-\exp\left( - \frac{|x|}{ L_\rho} \right) ,
+\label{eqn:inf_plane_eg_v_soln}
+\end{mymathbox}
+which is \citeauthor{gill76}'s \citeyearpar{gill76} (5.15).
+See \texttt{RSW\_adjustment.mlx} to check that the initial condition is satisfied by this expression.
+
+Finally, for the $u$ field:
+\begin{align}
+a_u (k,l) + a_u(-k, -l) + i \left[ b_u (k,l) - b_u (-k,-l)  \right]  & = 0 ,   \\
+\implies a_u(k,l) + a_u(-k,-l) & = 0 ,   \\
+b_u (k,l) - b_u (-k,-l) & =  0 .   
+\end{align}
+Therefore, $a_u (k,l)$ is a real odd function and $b_u (k,l)$ is a real even function of $k$ and $l$.
+From the original coupled equations we also know
+\begin{align}
+f a_v & = \omega b_u + k g b_\eta ,  
+\end{align}
+hence, 
+\begin{align}
+b_u & = \frac{1}{\omega} \left( f a_v - k g b_\eta \right),  \\
+&= \frac{4 \pi \Delta_\eta L_\rho^2 \, \delta (l) }{ \omega \left(1 + k^2 L_\rho^2 \right)} \left( \frac{f^2}{H} + k^2 g \right) ,  \\
+&= \frac{ 4 \pi \Delta_\eta L_\rho^2 \, \delta (l) }{ \left(1 + k^2 L_\rho^2 \right)} \frac{f^2 + k^2 g H}{\omega H} ,  \\
+&= \frac{ 4 \pi \Delta_\eta L_\rho^2 f^2 \, \delta (l) }{\omega H}  ,   
+\end{align}
+This expression for $b_u$ is even, as required, and $a_u$ is already known to be odd.
+It follows that
+\begin{align}
+u (x, y, t) & = 
+u_{\infty} + \Re \left\{ \frac{1}{\pi} \int _{-\infty} ^{\infty} \int_{-\infty}^{\infty} 
+\left[ a_u + i \frac{ \Delta_\eta L_\rho^2 f^2 \, \delta (l) }{\omega H} \right]
+\exp \left[ i \left( k x + l y - \omega t \right) \right] dk \; dl \right\} ,   \\
+&= - \frac{1}{2 \pi} \int_{-\infty}^{\infty}  
+\frac{ \Delta_\eta L_\rho^2 f}{
+\pm \sqrt{1 + k^2 L_\rho^2 }
+ H}
+\sin \left( k x \pm \sqrt{1 + k^2 L_\rho^2 } f t \right) dk ,   \\
+&= - \frac{2}{ \pi} \int_{0}^{\infty}  
+\frac{ \Delta_\eta L_\rho^2 f }{
+\sqrt{1 + k^2 L_\rho^2 }
+ H}
+\cos k x \sin \left( \sqrt{1 + k^2 L_\rho^2 } f t \right) dk ,  
+\end{align}
+because $a_u$ is odd and $\sin \left(k x + \omega t \right) - \sin \left(k x - \omega t \right) = 2 \cos k x \sin \omega t$.
+Therefore,
+\begin{mymathbox}[ams align, title=Infinite Plane Adjustment Example $u$ Solution, colframe=black!30!black]
+\frac{\sqrt{H/g} }{ \Delta_\eta} u & = 
+- \frac{2}{ \pi} \int_{0}^{\infty}  
+\frac{ L_\rho }{ \sqrt{1 + k^2 L_\rho^2 }}
+\cos k x \sin \left( \sqrt{1 + k^2 L_\rho^2 } f t \right) dk  ,
+\end{mymathbox}
+which is \citeauthor{gill76}'s \citeyearpar{gill76} (5.18) and obviously satisfies the $u$ initial condition.
+An exact expression exists for this integral in terms of a Bessel function\footnote{
+Specifically, 
+\begin{align}
+\frac{2}{ \pi} \int_{0}^{\infty}  \frac{ L_\rho }{ \sqrt{1 + k^2 L_\rho^2 }} \cos k x \sin \left( \sqrt{1 + k^2 L_\rho^2 } f t \right) dk  & = 
+\begin{cases}
+J_0 \left( f \sqrt{t^2 - x^2/(g H) } \right) & \text{~for~} |x| < \sqrt{g H} \, t , \\
+0 & \text{~for~} |x| > \sqrt{g H}  \, t 
+\end{cases}
+\end{align}
+(\citealt{erdelyi_etal54} page 26 \S30).
+}, which shows the $u$ signal propagates away from $x=0$ at speed $\sqrt{g H}$ with undisturbed fluid ahead of this characteristic.
+
+The remaining two equations in $a_u, b_u, b_v$, and $b_\eta$ are not needed because the even/odd symmetry of $a_u, a_\eta$ and $b_v$ guarantees that the corresponding terms in the integrals drop out.
+
+\subsection{Infinite Channel}
+\label{sect:infinite_channel}
+Now repeat the analysis for a straight infinite channel of width $M$ with walls at $y = \pm M/2$ \citep{gill76}.
+This analysis will expose the Kelvin wave.
+
+The Helmholtz equations (\ref{eq:infinite_x_Helmholtz}) say
+\begin{align}
+\left( d_{yy}  + l^2 \right) 
+\begin{pmatrix}
+\hat{U}, \hat{V}, \hat{E}\end{pmatrix}^T & = \bfz ,
+\label{eqn:infinite_x_Helmholtz2}
+\end{align}
+where 
+\begin{align}
+l^2 = \left( \omega^2 - f^2\right)/\left( g H \right) - k^2 .
+\label{eqn:l_definition}
+\end{align}
+The $\hat{V}$ boundary condition states $\hat{V}(y = \pm M/2) = 0$ at the impermeable walls.
+Therefore, $\hat{V}$ is either zero or it is solved by the appropriate eigenfunction.
+
+Consider the latter case first, which leads to IGWs: The eigenfunctions are $c^n \cos m y $ for $m = (2n+1) \pi / M$, where $n = 0, 1, 2, \cdots$ and so
+\begin{align}
+\Aboxed{
+\hat{V}(k,y) & = \sum_n c^n(k) \cos m y .
+\label{eqn:channel_V_hat}
+}
+\end{align}
+The allowable cross-channel ($y$) wavenumbers are quantized by the walls so that $l = m$ and
+\begin{align}
+\omega^2 &= f^2 + g H \left[ k^2 + \left( 2 n + 1 \right)^2 \pi^2 / M^2\right] .
+\end{align}
+These are discrete IGW modes in the channel.
+
+Similar to the infinite plane (\ref{eqn:inf_plane_eta_i}), the $c^n = a^n + i b^n$ coefficients are found from the initial condition via
+\begin{align}
+v_i & = v_\infty + \frac{1}{2 \pi} \Re \left[ \sum_n  \cos m y \int_{-\infty}^{\infty} c^n (k) \exp \left(i k x \right)  dk \right] ,  \label{eq:channel_c_v} \\
+\implies \hat{v}_i - \hat{v}_\infty & = \frac{1}{2 \pi} \int_{-\infty}^{\infty} \exp \left( - i k' x \right) \Re \left[ \sum_n  \cos m y \int_{-\infty}^{\infty} c^n (k) \exp \left(i k x \right) dk  \right] dx ,   \\
+& = \frac{1}{2 \pi} \sum_n \cos m y \iint \left[ a^n (k) \cos k x - b^n (k) \sin k x \right] \exp \left(-i k' x \right) dk \;  dx .   
+\end{align}
+The double integral is (see (\ref{eq:Fourier_detail}) \textit{et seq.})
+\begin{align}
+&\phantom{ =} \frac{1}{2} \iint \left[ a^n (k) + i b^n (k) \right] \exp \left[-i \left( k' - k \right) x \right] + \left[ a^n (k) - i b^n (k) \right] \exp \left[-i \left(k' + k \right) x \right] dk \;  dx ,   \\
+& = \pi \int \left[ a^n (k) + i b^n (k) \right] \delta \left( k - k' \right)  + \left[ a^n (-k) - i b^n (-k) \right] \delta \left(k - k' \right)  dk  ,   \\
+& = \pi \left\{ a^n (k') + i b^n (k') + a^n (-k') - i b^n (-k') \right\}  , \\
+& = \pi \overline{c}^n
+\end{align}
+using
+\begin{align}
+a(k) + a(-k) + i \left[ b(k) - b(-k) \right] = c(k) + c^* (-k) \equiv \overline{c}
+\label{eqn:overline_operator}
+\end{align}
+ for $c = a + i b$.
+Therefore, 
+\begin{align}
+\hat{v}_i - \hat{v}_\infty & = \frac{1}{2} \sum_n \overline{c}^n \cos m y 
+\label{eqn:channel_c_n_formula}
+\end{align}
+and
+\begin{align}
+2 \int_{-M/2}^{M/2}  \cos m' y \left( \hat{v}_i - \hat{v}_\infty \right) dy & = \sum_n \int_{-M/2}^{M/2} \overline{c}^n \cos m' y \, \cos m y \; dy,   
+\end{align}
+where $m' = (2n'+1) \pi / M$, where $n' = 0, 1, 2, \cdots$ (like $m$ and $n$).
+The orthogonality relation states that
+\begin{align}
+\int_{-M/2}^{M/2} \cos \frac{(2n' + 1) \pi y }{M} \,\cos \frac{(2n + 1) \pi y }{M} \; dy = \frac{M}{2} \delta_{n n'}  
+\label{eqn:trig_orthogonality}
+\end{align}
+(for Kronecker delta $\delta_{n n'}$).
+The sine functions are orthogonal in the same way.
+Hence, relabeling $k' \rightarrow k$ gives
+\begin{align}
+\Aboxed{
+\overline{c}^n & = \frac{4}{M} \int_{-M/2}^{M/2}  \cos m y \left( \hat{v}_i - \hat{v}_\infty \right) dy.   
+}
+\label{eq:channel_v_soln}
+\end{align}
+This expression is the analog of the result (\ref{eqn:eta_coeffs_inf_plane}) for the infinite plane with the new eigenfunction basis $\cos m y$ instead of $\exp \pm i l y$.
+
+To find the $u$ and $\eta$ fields from $v$ substitute in the original RSW equations (\ref{eqn:x_mom})--(\ref{eqn:cont}):
+\begin{align}
+\begin{pmatrix}
+- i \omega  & i k g \\
+f & g \partial_y \\
+i k H  & - i \omega
+\end{pmatrix}
+\begin{pmatrix}
+\hat{U} \\
+\hat{E}
+\end{pmatrix} & = 
+\sum_n c^n
+\begin{pmatrix}
+f  \cos m y \\
+i \omega \cos m y \\
+m H \sin m y
+\end{pmatrix} .
+\label{eqn:solve_channel_bcs}
+\end{align}
+The inverse of the matrix on the left that neglects the middle row is
+\begin{align}
+\begin{pmatrix}
+- i \omega  & i k g \\
+i k H  & - i \omega
+\end{pmatrix}^{-1} & =
+\frac{i}{\omega^2 - g H k^2 } \begin{pmatrix}
+\omega  & g k \\
+k H  & \omega
+\end{pmatrix} .
+\end{align}
+Thus, the first and last equations imply that
+\begin{align}
+\Aboxed{
+\begin{pmatrix}
+\hat{U} \\
+\hat{E}
+\end{pmatrix} & = 
+\sum_n \frac{i c^n}{1 + m^2 L_\rho^2}
+\begin{pmatrix}
+(\omega / f)  \cos m y  + m k L_\rho^2 \sin m y \\
+(H/f) \left[ k \cos m y  + (m \omega /f) \sin m y \right]
+\end{pmatrix} .}
+\label{eqn:channel_U_hat_E_hat}
+\end{align}
+The middle equation in (\ref{eqn:solve_channel_bcs}) is satisfied by these expressions if $\omega^2 / f^2 \neq k^2 L_\rho^2$, which is true here (see \texttt{Testing\_theory.mlx}).
+In this way, the IGW spectrum is specified by the initial and final $v$ field (although the final $v$ field depends on the initial $u$ and $\eta$ fields via the initial PV in (\ref{eqn:initial_PV})).
+For convenience below, write the $\{ \hat{U}, \hat{E} \}$ expressions as
+\begin{align}
+\begin{pmatrix}
+\hat{U} \\
+\hat{E}
+\end{pmatrix} & = 
+\sum_n \begin{pmatrix}
+c_u^n \cos m y  + s_u^n \sin m y \\
+c_\eta^n  \cos m y  + s_\eta^n \sin m y
+\end{pmatrix} .
+\label{eqn:channel_U_hat_E_hat_convenient}
+\end{align}
+where
+\begin{align}
+\begin{pmatrix}
+c_u^n & s_u^n  \\
+c_\eta^n & s_\eta^n
+\end{pmatrix} & = 
+\frac{i c^n}{1 + m^2 L_\rho^2}
+\begin{pmatrix}
+\omega / f & m k L_\rho^2 \\
+k H/f  & m \omega H / f^2 
+\end{pmatrix} .
+\label{eq:channel_u_eta_IGW_coeffs} 
+\end{align}
+
+Now consider the alternate possible solution to (\ref{eqn:infinite_x_Helmholtz2}) that $\hat{V}=0$ for all $y$.
+This leads to Kelvin waves.
+The RSW equations are now:
+\begin{align}
+\begin{pmatrix}
+- i \omega  & i k g \\
+f & g \partial_y \\
+i k H  & - i \omega
+\end{pmatrix}
+\begin{pmatrix}
+\hat{U} \\
+\hat{E}
+\end{pmatrix} & = 
+\bfz ,
+\label{eqn:RSW_Kelvin_wave_channel}
+\end{align}
+which leads to
+\begin{align}
+\hat{E} & = \frac{\omega}{k g} \hat{U} = \frac{k H}{\omega} \hat{U} .
+\end{align}
+This requires that
+\begin{align}
+\left(\frac{\omega}{k}\right)^2 & = g H , \label{eqn:gravity_wave_speed}
+\end{align}
+and hence from the dispersion relation (\ref{eqn:l_definition}) that
+\begin{align}
+l^2 & = -\frac{f^2}{g H} = -L_\rho^{-2} 
+\end{align}
+(which satisfies the middle equation in (\ref{eqn:RSW_Kelvin_wave_channel})).
+This $\hat{V}=0$ mode is the boundary-trapped Kelvin wave, which is non-dispersive, travels at speed $\sqrt{g H}$, and has characteristic width $L_\rho$.
+The general solution for the $y$ structure of the Kelvin wave therefore has the form $c_1 \exp  \left(y/L_\rho \right) + c_2 \exp \left( - y/L_\rho \right)$.
+Hence, 
+\begin{align}
+\hat{\eta} & = c_1(k) \exp  \left(\frac{y}{L_\rho} - i \omega_1 t \right) + c_2 (k) \exp \left( - \frac{y}{L_\rho} - i \omega_2 t \right) 
+\label{eqn:Kwave_soln_eta}
+\end{align}
+(from the $x$ Fourier transform of (\ref{eqn:gen_solution1}) and focusing on the Kelvin wave part). 
+For clarity, the frequencies of each component appear with subscripts, acknowledging that they might be different roots of (\ref{eqn:gravity_wave_speed}).
+From (\ref{eqn:x_mom}) and (\ref{eqn:y_mom}) with $\hat{v} = 0$:
+\begin{align}
+i f k \hat{\eta} & = \frac{\partial^2 \hat{\eta}}{\partial y \partial t} 
+\end{align}
+so
+\begin{align}
+c_1 \exp  \left(\frac{y}{L_\rho} - i \omega_1 t \right) + c_2 \exp \left( - \frac{y}{L_\rho} - i \omega_2 t \right) 
+&= -\frac{\omega_1 c_1}{f k L_\rho}  \exp  \left(\frac{y}{L_\rho} - i \omega_1 t \right) + \frac{\omega_2 c_2}{f k L_\rho} \exp \left( - \frac{y}{L_\rho} - i \omega_2 t \right) .
+\end{align}
+Pick $L_\rho = \sqrt{g H}/ f$ without loss of generality (because the negative root just exchanges $c_1 \leftrightarrow c_2$).
+Hence,
+\begin{align}
+\frac{\omega_1}{k} & = - \sqrt{g H} , \nonumber \\
+\frac{\omega_2}{k} & = \phantom{-} \sqrt{g H} .
+\label{eqn:Kwave_omegas}
+\end{align}
+The Kelvin wave travels in one direction only, with the wall to the right hand side looking in the direction of propagation (in the northern hemisphere).
+The $u$ speed is in geostrophic balance with $\eta$ from (\ref{eqn:y_mom}) with $v=0$, 
+\begin{align}
+f \hat{u} &= -g \left[ \frac{c_1}{ L_\rho} \exp  \left(\frac{y}{L_\rho} - i \omega_1 t \right) - \frac{c_2}{L_\rho}  \exp \left( - \frac{y}{L_\rho} - i \omega_2 t \right)  \right], \\
+\implies
+\hat{u} &= - \sqrt{g/H} \left[c_1\exp  \left(\frac{y}{L_\rho} - i \omega_1 t \right) - c_2 \exp \left( - \frac{y}{L_\rho} - i \omega_2 t \right) \right] .\label{eqn:inf_plane_Kwave_u_h} 
+\end{align}
+This solution is \citeauthor{thomson1880}'s \citeyearpar{thomson1880} equations (17).
+Using the convolution theorem, ${\mathcal F}_x^{-1} \left[ \exp i c k  t \right] = \delta (x + c t)$, (\ref{eqn:Kwave_soln_eta}), (\ref{eqn:Kwave_omegas}), and (\ref{eqn:inf_plane_Kwave_u_h}) gives
+\begin{mymathbox}[ams align, title=Infinite Channel Kelvin Wave Solution, colframe=black!30!black]
+\eta & =  {\mathcal F}_x^{-1} \left[c_1\right] \left( x + \sqrt{g H} t \right) \expe^{  y / L_\rho} + {\mathcal F}_x^{-1} \left[c_2\right] \left( x - \sqrt{g H} t \right) \expe^{- y/L_\rho} ,\\
+u &= - \sqrt{g/H} \left[{\mathcal F}_x^{-1} \left[c_1\right] \left( x + \sqrt{g H} t \right) \expe^{  y / L_\rho} - {\mathcal F}_x^{-1} \left[c_2\right] \left( x - \sqrt{g H} t \right) \expe^{- y/L_\rho} \right] .
+\end{mymathbox}
+
+The Kelvin wave coefficients $c_1$ and $c_2$ are found from the initial condition and the known IGW coefficients via
+\begin{align}
+\begin{pmatrix}
+u_i - u_\infty \\
+\eta_i - \eta_\infty
+\end{pmatrix} & = 
+\frac{1}{2 \pi} \Re \left\{
+\sum_n 
+\int_{-\infty}^{\infty} 
+\begin{pmatrix}
+c_u^n \cos m y  + s_u^n \sin m y \\
+c_\eta^n  \cos m y  + s_\eta^n \sin m y
+\end{pmatrix} 
+\exp \left(i k x \right)
+\right.  - \nonumber \\
+& \left.
+\begin{pmatrix} 
+\sqrt{g/H} \left[ c_1 \exp \left( y/L_\rho \right) - c_2 \exp \left( - y/L_\rho \right) \right]\\
+\;\;\;\;\; \;\; \;\;- c_1 \exp  \left( y/L_\rho \right) - c_2 \exp \left( - y/L_\rho \right)
+\end{pmatrix} 
+\exp \left(i k x \right)  dk 
+\right\} ,
+\label{eq:channel_u_eta_soln}
+\end{align}
+which resembles equation (\ref{eq:channel_c_v}).
+The same arguments leading to (\ref{eqn:channel_c_n_formula}) therefore give
+\begin{align}
+2 \begin{pmatrix}
+\hat{u}_i - \hat{u}_\infty \\
+\hat{\eta}_i - \hat{\eta}_\infty
+\end{pmatrix} & = 
+\sum_n
+\begin{pmatrix}
+\overline{c}_u^n \cos m y  + \overline{s}_u^n \sin m y \\
+\overline{c}_\eta^n  \cos m y  + \overline{s}_\eta^n \sin m y
+\end{pmatrix}  -
+\begin{pmatrix} 
+\sqrt{g/H} \left[ \overline{c}_1 \exp \left( y/L_\rho \right) - \overline{c}_2 \exp \left( - y/L_\rho \right) \right]\\
+\;\;\;\;\; \;\; \;\;- \overline{c}_1 \exp  \left( y/L_\rho \right) - \overline{c}_2 \exp \left( - y/L_\rho \right)
+\end{pmatrix} .
+\label{eqn:Kwave_intermediate}
+\end{align}
+Multiplying by $\cos m' y $ and integrating over $y$ gives
+\begin{align}
+\int_{-M/2}^{M/2}  \cos m' y
+\begin{bmatrix} 
+2 \left( \hat{u}_i - \hat{u}_\infty \right) +\sqrt{g/H} \left[ \overline{c}_1 \exp \left( y/L_\rho \right) - \overline{c}_2 \exp \left( - y/L_\rho \right) \right]\\
+2 \left( \hat{\eta}_i - \hat{\eta}_\infty \right) - \;\;\;\;\; \;\; \;\;\;\;\; \overline{c}_1 \exp  \left( y/L_\rho \right) - \overline{c}_2 \exp \left( - y/L_\rho \right)
+\end{bmatrix} dy = 
+\frac{M}{2}
+\begin{pmatrix}
+\overline{c}_u^{n'}   \\
+\overline{c}_\eta^{n'}  
+\end{pmatrix}
+\end{align}
+(because of orthogonality of $\cos m' y$ with $\cos m y $ and $\sin m y$).
+Thus\footnote{Noting that (see \texttt{RSW\_adjustment.mlx})
+\begin{align}
+\int_{-M/2}^{M/2} \cos m y \exp \left(\pm \frac{y}{L_\rho} \right) dy &= \frac{ 2 (-1)^{n} m L_\rho^2 \cosh \left[ M/(2 L_\rho) \right]}{1 + m^2 L_\rho^2}  = \frac{m L_\rho}{\Gamma_n} , \label{eqn:cosine_integral}\\
+\implies 
+\int_{-M/2}^{M/2} \cos m y \cosh \left( \frac{y}{L_\rho} \right) dy &= \frac{m L_\rho}{\Gamma_n} \\
+\int_{-M/2}^{M/2} \sin m y \exp \left(\pm \frac{y}{L_\rho} \right) dy &= \frac{ \pm 2 (-1)^n L_\rho \cosh \left[ M/(2 L_\rho) \right]}{1 + m^2 L_\rho^2} = \pm \frac{1}{\Gamma_n} \label{eqn:sine_exp_integral} \\
+\implies 
+\int_{-M/2}^{M/2} \sin m y \sinh \left( \frac{y}{L_\rho} \right) dy &= \frac{1}{\Gamma_n}
+\end{align}
+with $\Gamma_n$ defined in (\ref{eqn:Gamma_def}).
+Note that these integrals imply that
+\begin{align}
+\sinh y / L_\rho & = \frac{2}{M} \sum_n \frac {1}{\Gamma_n} \sin m y  , \\
+ & = \frac{4 L_\rho}{M}  \cosh M/(2 L_\rho)  \sum_n \frac {(-1)^{n} }{ 1 + m^2 L_\rho^2 } \sin m y  , \label{eqn:sinh_expansion} \\
+\cosh y / L_\rho & = \cosh M/(2 L_\rho)  \left[ 1 - \sum_n \frac{4 (-1)^n }{m M \left( 1 + m^2 L_\rho^2 \right)} \cos m y  \right]
+\label{eqn:cosh_expansion}
+\end{align}
+(see \texttt{Testing\_theory.mlx}).
+\label{fn:cosh_sinh_exp_integrals}
+}
+\begin{align}
+\begin{pmatrix} 
+[L_\rho/H] \left[ \overline{c}_1 - \overline{c}_2 \right]\\
+\;\;\;\;\; \;\; \;\; - \overline{c}_1 - \overline{c}_2 
+\end{pmatrix}  
+& =
+\frac{\Gamma_n}{m L_\rho}
+\left[
+\int_{-M/2}^{M/2}  2 \cos m y
+\begin{pmatrix} 
+\left[ \hat{u}_\infty - \hat{u}_i \right] / f\\
+\hat{\eta}_\infty - \hat{\eta}_i
+\end{pmatrix}   dy 
++
+\frac{M}{2}
+\begin{pmatrix}
+\overline{c}_u^{n} /f \\
+\overline{c}_\eta^{n}  
+\end{pmatrix}
+\right]
+\label{eqn:Kwave_coeffs1}
+\end{align}
+for 
+\begin{align}
+\Gamma_n = (-1)^{n} \frac{1 + m^2 L_\rho^2 }{ 2 L_\rho \cosh \left[ M/(2 L_\rho) \right]} .
+\label{eqn:Gamma_def}
+\end{align}
+Similarly, multiplying (\ref{eqn:Kwave_intermediate}) by $\sin m' y $ and integrating over $y$ gives
+\begin{align}
+\int_{-M/2}^{M/2}  \sin m' y
+\begin{bmatrix} 
+2 \left( \hat{u}_i - \hat{u}_\infty \right) +\sqrt{g/H} \left[ \overline{c}_1 \exp \left( y/L_\rho \right) - \overline{c}_2 \exp \left( - y/L_\rho \right) \right]\\
+2 \left( \hat{\eta}_i - \hat{\eta}_\infty \right) - \;\;\;\;\; \;\; \;\;\;\;\; \overline{c}_1 \exp  \left( y/L_\rho \right) - \overline{c}_2 \exp \left( - y/L_\rho \right)
+\end{bmatrix}  dy & = \frac{M}{2} 
+\begin{pmatrix} 
+\overline{s}_u^{n'} \\ 
+\overline{s}_\eta^{n'}
+\end{pmatrix} 
+\end{align}
+implying that
+\begin{align}
+\begin{pmatrix} 
+[L_\rho / H] \left[ \overline{c}_1 + \overline{c}_2  \right]\\
+ \;\;\;\;\; \;\; \;\; - \overline{c}_1 + \overline{c}_2 
+\end{pmatrix}  &= 
+\Gamma_n
+\left[ \int_{-M/2}^{M/2} 2 \sin m y
+\begin{pmatrix} 
+\left[ \hat{u}_\infty - \hat{u}_i \right] / f\\
+\hat{\eta}_\infty - \hat{\eta}_i
+\end{pmatrix}  dy +
+\frac{ M}{2} \begin{pmatrix} 
+\overline{s}_u^n / f \\ 
+\overline{s}_\eta^n
+\end{pmatrix}\right] .
+\label{eqn:Kwave_coeffs2}
+\end{align}
+This procedure isolates the $\overline{c}_1$ and $\overline{c}_2$ Kelvin wave coefficients in (\ref{eqn:Kwave_coeffs1}) and (\ref{eqn:Kwave_coeffs2}).
+It is equivalent to the approach of \citet{gill76} to split $u$ and $\eta$ into odd and even parts.
+The right hand sides of these expressions are computed from the initial condition and the final steady solution.
+However, the final steady solution for $u$ and $\eta$ cannot be found without knowledge of $\overline{c}_1$ and $\overline{c}_2$.
+Therefore, $\overline{c}_1$, $\overline{c}_2$, $u_\infty$, and $\eta_\infty$ must be determined together.
+
+Find the particular solution for the steady part of the flow as for the infinite plane:
+\begin{align}
+\left( d_{yy} - l'^2 \right) \hat{v}_{\infty}  & = i f k \hat{Q}_i   
+\end{align}
+(recall $l'^2 = k^2 + f^2/(gH)$).
+The boundary conditions are $\hat{v}_\infty = 0$ on $y = \pm M/2$.
+Once $v_\infty$ is determined, $u_\infty$ and $\eta_\infty$ are found from the steady RSW equations (\ref{eqn:x_mom})--(\ref{eqn:cont}), \textit{viz.}
+\begin{align}
+\eta_\infty (x,y) & = \frac{f}{g} \int^x v_\infty (x',y) \; dx' + C(y) , \label{eqn:channel_eta_infty} \\
+\implies \hat{\eta}_\infty & = - \frac{i f}{g k } \hat{v}_\infty + 2 \pi \delta (k) C , \\
+u_\infty & = -\frac{g}{f} \frac{\partial \eta_\infty}{\partial y}  = - \int^x \frac{\partial v_\infty}{\partial y} \; dx' - \frac{g}{f} \frac{\partial C}{\partial y} , \\
+\implies \hat{u}_\infty & = \frac{i}{k} \frac{\partial \hat{v}_\infty}{\partial y} - \frac{2 \pi g \delta(k) }{f} \frac{\partial C}{\partial y} .
+\end{align}
+Note that the boundary conditions on $\eta_\infty$ are not yet determined, so we cannot simply solve (\ref{eqn:inf_plane_steady}) for $\eta_\infty$.
+Physically, impermeability sets $v=0$ on the walls, $\eta$ is a constant (set to $C(-M/2) = -A/2$ on $y=-M/2$ and $C(M/2) = A/2$ on $y=M/2$), and $u$ is geostrophically balanced with $\eta$.
+The constant $A$, which sets the steady volume flux along the channel, is determined with the Kelvin wave coefficients $\overline{c}_1$ and $\overline{c}_2$.
+The complete solution for the infinite channel consists of the Kelvin wave, IGWs, and the steady (particular) solution.
+A specific example is now given.
+
+\subsubsection*{Example:}
+As for the infinite plane, consider the case due to \citet{gill76, gill82} (see also \citealt{wajsowicz&gill86}): $\eta_i = \Delta_\eta \, \sign (x), u_i = v_i = 0$.
+Then, $\hat{\eta}_i = -2 i \Delta_\eta / k$, $Q_i = -\sign (x) \Delta_\eta / H, \hat{Q}_i = 2 i \Delta_\eta / (k H)$, and the steady $v$ flow satisfies (from (\ref{eqn:inf_plane_steady}))
+\begin{align}
+\left( d_{yy} - l'^2 \right)
+\hat{v}_{\infty} & = i f k \hat{Q}_i = 
+- \frac{2 \Delta_\eta f}{H} ,   
+\end{align}
+with boundary conditions $\hat{v}_\infty = 0$ on $y = \pm M/2$.
+This gives
+\begin{align}
+\hat{v}_{\infty}& = 
+\frac{2 f \Delta_\eta }{ H l'^2 \cosh\left( M l' / 2 \right)} \left[\cosh \left( M l' / 2 \right) - \cosh l' y \right]
+\label{eqn:channel_eg_v_h_inf}
+\end{align}
+(see \texttt{RSW\_adjustment.mlx} and recall that $l'^2 = k^2 + L_\rho^{-2}$).
+Notice how this equation collapses to the infinite plane expression (\ref{eq:inf_plane_steady_soln}) for $|y| \ll M$ (see \texttt{RSW\_adjustment.mlx}).
+
+The real-space steady solution is given by
+\begin{align}
+v_{\infty} & = 
+\frac{1}{ \pi }
+\int_{-\infty}^{\infty}
+\frac{f \Delta_\eta }{H l'^2 \cosh\left( M l' / 2 \right)}
+ \left[ \cosh \left( M l' / 2 \right) - \cosh l' y \right] 
+\exp \left( i k x \right)  dk.  
+\end{align}
+This inverse Fourier transform appears to be unknown, however (at least, in MATLAB and \citealt{gradshteyn&ryzhik00}).
+The fraction is an even function of $k$, so
+\begin{align}
+v_{\infty} & = 
+\frac{2}{ \pi }
+\int_{0}^{\infty}
+\frac{f \Delta_\eta }{H l'^2 \cosh\left( M l' / 2 \right)} \left[\cosh \left( M l' / 2 \right) - \cosh l' y \right] \cos k x \;  dk.  
+\end{align}
+But this integral also appears to be unknown.
+
+An alternative approach is to expand $\hat{v}_\infty (y)$ in a Fourier cosine series in $y$, which is the path taken by \citet{gill76}.
+Specifically, from (\ref{eqn:channel_eg_v_h_inf})
+\begin{align}
+\hat{v}_{\infty} & = \frac{2 f \Delta_\eta  \left\{ \cosh \left( \sqrt{ k^2 + L_\rho^{-2} }M/2 - \cosh \left( \sqrt{k^2 + L_\rho^{-2}} y \right) \right) \right\} }{ H \left( k^2 + L_\rho^{-2}\right) \cosh\left( \sqrt{ k^2 + L_\rho^{-2}} M / 2 \right) } , \\
+& =  \frac{\Delta_\eta}{\sqrt{H/g}} \sum_n \hat{\gamma}_n (k) \cos m y ,
+\label{eqn:channel_eg_v_hat_inf}
+\end{align}
+where (using (\ref{eqn:trig_orthogonality}) and \texttt{RSW\_adjustment.mlx})\footnote{
+Use
+\begin{align}
+{\mathcal F}^{-1}_x \left[ \frac{1}{a + b k^2} \right] &= \frac{\exp \left( - |x| \sqrt{a/b} \right)}{2 \sqrt{a b}} .
+\label{eqn:FT1}
+\end{align}
+}
+\begin{align}
+\hat{\gamma}_n (k) & = \frac{8 {\left(-1\right)}^{n} L_\rho}{m M \left[1 + \left( k^2 + m^2\right) L_\rho^2 \right]}  \label{eqn:gamma_hat_n}\\
+\implies \gamma_n (x) & = \frac{4 {\left(-1\right)}^{n} }{m M  \sqrt{ 1 + m^2 L_\rho^2 }} \exp \left( - \sqrt{1 + m^2 L_\rho^2 } |x|/L_\rho \right) .
+\end{align}
+Note that $\gamma$ is a non-dimensional even function of $x$.
+Hence, 
+\begin{align}
+\Aboxed{
+\frac{\sqrt{H/g}}{\Delta_\eta} v_{\infty} 
+& = \sum_n \frac{4 {\left(-1\right)}^{n} }{m M \sqrt{ 1+  m^2 L_\rho^2 }} \exp \left( -\sqrt{1 + m^2 L_\rho^2 }  |x| / L_\rho \right) \cos m y ,}
+\label{eqn:channel_eg_v_infty_soln} \\
+& = \sum_n \gamma_n (x) \cos m y , 
+\label{eqn:channel_eg_v_infty_soln_expansion}
+\end{align}
+which is consistent with (7.10) of \citet{gill76} but applies for all $x$, not just $x=0$.
+The initial step in $\eta$ at $x=0$ is smoothed into a ramp with an associated cross-channel jet $v$ of characteristic width $L_\rho$, as in the infinite plane problem.
+
+The IGW coefficients can now be computed from $v_i = 0 $ and (\ref{eq:channel_v_soln}):
+\begin{align}
+\overline{c}^n & = - \frac{2 \Delta_\eta} {\sqrt{H/g}} \hat{\gamma}_n ,
+\end{align}
+which means that $c^n$ is an even function of $k$ with real part
+\begin{align}
+\Re \left\{ c^n \right\} & = - \frac{\Delta_\eta} {\sqrt{H/g}} \hat{\gamma}_n .
+\label{eqn:channel_example_IGW_coeffs}
+\end{align}
+
+The $v$ solution is found with similar steps to the infinite-plane case (\ref{eqn:inf_plane_eg_eta_intermediate0})--(\ref{eqn:inf_plane_eg_eta_soln}) (also (\ref{eqn:channel_V_hat})):
+\begin{align}
+\frac{v - v_\infty}{\Delta_\eta \sqrt{g/H}}  &= -\frac{1}{2 \pi}\Re \left\{ \sum_n \int_{-\infty} ^{\infty} \hat{\gamma}_n \cos m y \; \exp \left[ i \left(k x - \omega t\right) \right] \; dk  \right\} , \nonumber \\
+&= -\frac{1}{4 \pi} \sum_n \int_{-\infty} ^{\infty} \hat{\gamma}_n \cos m y \; \cos \left(k x \mp \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)  dk  , \nonumber \\
+&= -\frac{1}{ \pi} \sum_n \int_{0} ^{\infty} \hat{\gamma}_n \cos m y \; \cos k x\; \cos \left( \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)  dk  .
+\end{align}
+(Note that the unknown imaginary part of $c^n$ drops out because it is an even function. Also recall the factor of two from both positive and negative $\omega$; see (\ref{eqn:inf_plane_eg_eta_intermediate}).)
+So, finally, 
+\begin{mymathbox}[ams align, title=Infinite Channel Adjustment Example $v$ Solution, colframe=black!30!black]
+\frac{\sqrt{H/g}}{\Delta_\eta} v &= \sum_n \frac{4 {\left(-1\right)}^{n} }{m M} \cos m y \left[ \frac{\exp \left( - \sqrt{1 + m^2 L_\rho^2 } \; |x| / L_\rho \right) }{ \sqrt{ 1 + m^2 L_\rho^2 }} \right. \nonumber \\
+& \left. -  \frac{2  L_\rho}{\pi} \int_{0} ^{\infty} \frac{ \cos k x \cos \left( \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)}{ 1 + \left( k^2 + m^2\right) L_\rho^2}  dk  \right] .
+\label{eqn:channel_eg_v_soln}
+\end{mymathbox}
+This is very close to \citet{gill76} equations (6.21)--(6.23) (although in a somewhat different form).
+For $t=0$, this expression gives $v_i=0$ (each term in the brackets vanishes individually), as required.\footnote{Use 
+\begin{align}
+\int_{0} ^{\infty} \frac{\cos k x }{a^2 + k^2 }  dk = \frac{\pi |a|}{2 a^2} \expe ^{- |a| |x|}
+\end{align}
+from WolframAlpha (see also \citealt{gradshteyn&ryzhik00}, page 418; MATLAB struggles).
+%https://www.wolframalpha.com/input/?i=integrate+cos%28k*x%29%2F%28a%5E2%2Bk%5E2%29+wrt+k+from+0+to+infinity
+}
+
+Now determine $\eta_\infty$ by integrating the geostrophic relation $f v_\infty = g \partial_x \eta_\infty$\footnote{And noting that
+\begin{align}
+\int \exp \left( - a |x| \right) dx 
+%&= - \frac{\sign(x)}{a} \exp \left( - a |x| \right) + C \\
+& = 
+\left\{ \begin{array}{lr}
+\left( 1 - \expe^{-a x} \right)/a & \text{~for~} x \ge 0 \\
+\left( \expe^{a x} -1 \right)/a & \text{~for~} x < 0 \\
+\end{array} \right\} + C \\
+& = \sign(x) \left( 1 - \expe^{-a |x|} \right)/a + C.
+\label{eqn:channel_eg_eta_inf_intermediate2}
+\end{align}
+By symmetry, and recalling the solution to the adjustment problem in the infinite plane, we know that $\eta_\infty (0,0) = 0$, which specifies $C=0$ for (\ref{eqn:channel_eg_eta_inf_intermediate2}).
+} as in (\ref{eqn:channel_eta_infty}):
+\begin{align}
+\frac{\eta_\infty}{\Delta_\eta} & = \frac{1}{L_\rho} \int^x \sum_n \gamma_n(x') \cos m y \; dx' + C(y) 
+\label{eqn:channel_eg_eta_inf_intermediate}
+\end{align}
+(notice this definition of $C$ differs from that in (\ref{eqn:channel_eta_infty}) by a factor of $\Delta_\eta$.)
+Therefore, (\ref{eqn:channel_eg_v_infty_soln}) says
+\begin{align}
+\frac{\eta_\infty}{\Delta_\eta} & = \sum_n \frac{4 {\left(-1\right)}^{n} }{m M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] \cos m y + C(y) , \label{eqn:channel_eg_eta_steady} 
+\end{align}
+(compare with \citealt{gill76} (7.1)).
+This implies that\footnote{Because
+\begin{align}
+{\mathcal F}_x \left[ \sign(x) \left( 1 - \expe^{ - a |x| } \right) \right] &= 
+\frac{-2 i a^2}{k \left(k^2 + a^2\right) } .
+\end{align}
+}
+\begin{align}
+\frac{\hat{\eta}_\infty}{\Delta_\eta} & = \sum_n \frac{4 {\left(-1\right)}^{n} }{m M \left( 1 + m^2 L_\rho^2 \right)} \frac{- 2 i \left( 1 + m^2 L_\rho^2 \right)}{ k \left[ 1+ \left( k^2 + m^2  \right) L_\rho^2 \right] } \cos m y + 2 \pi \delta (k) C , \\
+& = \sum_n \frac{-8 i {\left(-1\right)}^n}{m k M \left[ 1+ \left( k^2 + m^2  \right) L_\rho^2 \right]} \cos m y + 2 \pi \delta C , \\
+& =  \sum_n  -\frac{i \hat{\gamma}_n}{k L_\rho} \cos m y + 2 \pi \delta C
+\end{align}
+(which is consistent with solving for $\hat{\eta}_\infty$ from (\ref{eqn:channel_eg_v_hat_inf}) and $f \hat{v}_{\infty} = i k g \hat{\eta}$).
+
+Now determine $u_\infty$ from $u_\infty = (-g/f) \partial_y \eta_\infty$ and (\ref{eqn:channel_eg_eta_steady}).
+Thus,
+\begin{align}
+\frac{\sqrt{H/g}}{\Delta_\eta}  u_\infty & = \sum_n \frac{4 {\left(-1\right)}^{n} L_\rho}{ M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] \sin m y  -  L_\rho \frac{\partial C}{\partial y},
+\label{eqn:channel_eg_u_steady} \\
+\implies
+\frac{\sqrt{H/g}}{\Delta_\eta}  \hat{u}_\infty & = - \sum_n \frac{i m \hat{\gamma}_n}{k}  \sin m y - 2 \pi \delta L_\rho \frac{\partial C}{\partial y} .
+\end{align}
+%Therefore, the $u$ parts of (\ref{eqn:Kwave_coeffs1}) and (\ref{eqn:Kwave_coeffs2}) read
+%\begin{align}
+%\frac{\overline{c}_1 - \overline{c}_2}{\Delta_\eta \Gamma_n M} & =
+%\frac{1}{m L_\rho} \left(
+%- 2 \pi \delta m L_\rho \beta_n +
+%\frac{\sqrt{H/g}\; \overline{c}_u^{n}}{2 \Delta_\eta}  \right) , \\
+%\frac{\overline{c}_1 + \overline{c}_2}{\Delta_\eta \Gamma_n M} &= 
+%- \frac{i m \hat{\gamma}_n}{k} +  2 \pi \delta m L_\rho \alpha_n + \frac{\sqrt{H/g}\; \overline{s}_u^n}{2\Delta_\eta}
+%\end{align}
+%using $\hat{u}_i = 0$.
+To find the unknown $C(y)$ function apply conservation of potential vorticity (\ref{eqn:initial_PV}):
+\begin{align}
+\frac{1}{f} \left( \frac{\partial v_\infty}{\partial x} - \frac{\partial u_\infty}{\partial y} \right) - \frac{\eta_\infty}{H} = \frac{ - \sign(x) \Delta_\eta}{H} .
+\end{align}
+This implies that
+\begin{align}
+\frac{1}{f} \left( \frac{\partial }{\partial x} \left \{ 
+\sqrt{g/H} \sum_n \frac{4 {\left(-1\right)}^{n} }{m M \sqrt{ 1+  m^2 L_\rho^2 }} \exp \left( -\sqrt{1 + m^2 L_\rho^2 }  |x| / L_\rho \right) \cos m y  \right\} \right.  & - \nonumber  \\
+\left. \frac{\partial }{\partial y} 
+\left\{
+\sqrt{g/H}  \sum_n \frac{4 {\left(-1\right)}^{n} L_\rho}{ M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] \sin m y  -  L_\rho \frac{\partial C}{\partial y}
+\right\}
+\right) & - \nonumber \\
+\frac{1}{H} \left\{
+\sum_n \frac{4 {\left(-1\right)}^{n} }{m M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] \cos m y + C
+\right\} 
+&= \frac{ - \sign(x) }{H}  . \nonumber
+\end{align}
+Thus
+\begin{align}
+L_\rho \left( \frac{\partial }{\partial x} \left \{ 
+\sum_n \frac{4 {\left(-1\right)}^{n} }{m M \sqrt{ 1+  m^2 L_\rho^2 }} \exp \left( -\sqrt{1 + m^2 L_\rho^2 }  |x| / L_\rho \right) \cos m y  \right\} \right. & - \nonumber  \\
+\left. \frac{\partial }{\partial y} 
+\left\{
+\sum_n \frac{4 {\left(-1\right)}^{n} L_\rho}{ M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] \sin m y  -  L_\rho \frac{\partial C}{\partial y}
+\right\}
+\right) & - \nonumber  \\
+\sum_n \frac{4 {\left(-1\right)}^{n} }{m M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] \cos m y + C &=  - \sign(x) . \nonumber
+\end{align}
+and 
+\begin{align}
+\sum_n \frac{- 4 {\left(-1\right)}^{n} \sign(x)}{m M} \exp \left( -\sqrt{1 + m^2 L_\rho^2 }  |x| / L_\rho \right) \cos m y  & -  \nonumber \\
+\sum_n \frac{4 {\left(-1\right)}^{n} L_\rho^2}{ M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] m \cos m y  -  L_\rho^2 \frac{\partial^2 C}{\partial y^2} & - \nonumber  \\
+\sum_n \frac{4 {\left(-1\right)}^{n} }{m M \left( 1 + m^2 L_\rho^2 \right)} \sign(x) \left[ 1 - \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right) \right] \cos m y + C
+&=  - \sign(x)
+\label{eqn:channel_example_PV_intermediate}
+\end{align}
+so
+\begin{align}
+-\sum_n \frac{4 {\left(-1\right)}^{n} \sign(x)}{m M}  \cos m y
+&=  - \sign(x) +  L_\rho^2 \frac{\partial^2 C}{\partial y^2} - C \nonumber \\
+\implies
+L_\rho^2 \frac{\partial^2 C}{\partial y^2} - C  & = \sign(x) \left[ 1 - \sum_n \frac{4 {\left(-1\right)}^{n} }{m M} \cos m y \right] = 0, \nonumber \\
+\implies C(y) &= \alpha \cosh y/L_\rho + \beta \sinh y/L_\rho 
+\end{align}
+(see \texttt{RSW\_adjustment.mlx} and substitute $x=0$ in (\ref{eqn:channel_example_PV_intermediate}) to check).
+
+From the $\eta$ parts of (\ref{eqn:Kwave_coeffs1}) and (\ref{eqn:Kwave_coeffs2})
+\begin{align}
+\frac{- \overline{c}_1 - \overline{c}_2}{\Delta_\eta} & =
+\frac{\Gamma_n M}{m L_\rho}
+\left[
+ \frac{- i \hat{\gamma}_n }{k L_\rho} + \frac{8 (-1)^n i }{m k M}
++
+\frac{\overline{c}_\eta^{n}}{2\Delta_\eta} \right]  
++ 4 \pi \delta \alpha\\
+\frac{- \overline{c}_1 + \overline{c}_2}{\Delta_\eta} &= \frac{\Gamma_n M \overline{s}_\eta^n}{2 \Delta_\eta} + 4 \pi \delta \beta
+\end{align}
+using $\hat{\eta}_i = - 2 i \Delta_\eta / k$, $\int_{-M/2}^{M/2} \sin m y \; d y = 0$, $\int_{-M/2}^{M/2} \cos m y \; d y = 2 (-1)^n /m$, and footnote \ref{fn:cosh_sinh_exp_integrals}.
+Therefore, 
+\begin{align}
+-\frac{2 \overline{c}_1}{\Delta_\eta} & = \frac{ \Gamma_n M}{m L_\rho}
+\left[
+ \frac{-i \hat{\gamma}_n}{k L_\rho} + \frac{8 (-1)^n i }{m k}
++
+\frac{\overline{c}_\eta^{n}}{2 \Delta_\eta} \right]  +
+\frac{ \Gamma_n M \overline{s}_\eta^n}{2 \Delta_\eta} 
++ 4 \pi \delta \left( \alpha + \beta \right)
+, \label{eqn:c1_eta} \\
+\frac{2 \overline{c}_2}{\Delta_\eta}  &= 
+\frac{ \Gamma_n M \overline{s}_\eta^n}{2 \Delta_\eta}
+-
+\frac{ \Gamma_n M}{m L_\rho}
+\left[ \frac{-i \hat{\gamma}_n }{k L_\rho} + \frac{8 (-1)^n i }{m k}
++
+\frac{\overline{c}_\eta^{n}}{2 \Delta_\eta} \right] 
++ 4 \pi \delta \left(\beta - \alpha \right)
+ \label{eqn:c2_eta} .
+\end{align}
+
+Now from (\ref{eq:channel_u_eta_IGW_coeffs}) and (\ref{eqn:channel_example_IGW_coeffs})
+\begin{align}
+\begin{pmatrix}
+c_u^n & s_u^n  \\
+c_\eta^n & s_\eta^n
+\end{pmatrix} & =
+- \frac{b^n + i \frac{\Delta_\eta}{\sqrt{H/g}} \hat{\gamma}_n }{1 + m^2 L_\rho^2}
+\begin{pmatrix}
+\omega / f & m k L_\rho^2 \\
+k H/f  & m \omega H / f^2 
+\end{pmatrix} ,
+\end{align}
+where $b^n$ is the imaginary part of $c^n$ and is an even $k$ function.
+Thus, from the definition of the overline operator (\ref{eqn:overline_operator}) we have
+\begin{align}
+\begin{pmatrix}
+\overline{c}_u^n & \overline{s}_u^n  \\
+\overline{c}_\eta^n & \overline{s}_\eta^n
+\end{pmatrix} & =
+- \frac{2}{1 + m^2 L_\rho^2}
+\begin{pmatrix}
+b^n \omega / f & i \frac{\Delta_\eta}{\sqrt{H/g}} \hat{\gamma}_n m k L_\rho^2 \\
+i \frac{\Delta_\eta}{\sqrt{H/g}} \hat{\gamma}_n k H/f  & b^n m \omega H / f^2 
+\end{pmatrix} 
+\label{eqn:channel_eg_IGW_u_eta_coeffs}
+\end{align}
+(recall that $b_n$ and $\hat{\gamma}_n$ are even functions of $k$).
+
+Using these relations, the definition of $\hat{\gamma}_n$ from (\ref{eqn:gamma_hat_n}), of $\Gamma_n$ from (\ref{eqn:Gamma_def}), and of the IGW coefficients from (\ref{eqn:channel_example_IGW_coeffs}) gives
+\begin{align}
+k \cosh M/(2 L_\rho) \left[ \overline{c}_1 + 2 \pi \delta \Delta_\eta \left( \alpha + \beta \right) \right] & = \phantom{-} \frac{(-1)^n k m \omega H M b_n }{4 f^2 L_\rho}  - 2 i \Delta_\eta , \nonumber \\
+k \cosh M/(2 L_\rho) \left[ \overline{c}_2 + 2 \pi \delta \Delta_\eta \left( \alpha - \beta \right) \right] & = - \frac{(-1)^n k m \omega H M b_n }{4 f^2 L_\rho}  - 2 i \Delta_\eta 
+\label{eqn:c1c2_bar} 
+\end{align}
+(see \texttt{RSW\_adjustment.mlx}).
+
+Similarly, from the $u$ parts of (\ref{eqn:Kwave_coeffs1}) and (\ref{eqn:Kwave_coeffs2})
+\begin{align}
+\frac{\overline{c}_1 - \overline{c}_2}{\Delta_\eta}  & = - 4 \pi \delta \beta + \frac{\Gamma_n}{m L_\rho} \sqrt{H/g} \frac{M \overline{c}_u^{n}}{2 \Delta_\eta} \\
+\frac{\overline{c}_1 + \overline{c}_2}{\Delta_\eta}  & = - 4 \pi \delta \alpha - \Gamma_n \frac{i m  M \hat{\gamma}_n}{k} + \Gamma_n \sqrt{H/g}  \frac{M  \overline{s}_u^n}{2\Delta_\eta}  \\
+\implies
+\frac{2 \overline{c}_1 }{\Delta_\eta} & =
+\frac{\sqrt{H/g}\, \Gamma_n M}{2 \Delta_\eta m L_\rho} \left(\phantom{-}\overline{c}_u^{n} + m L_\rho \overline{s}_u^n \right)  - \frac{i m \Gamma_n M \hat{\gamma}_n}{k} - 4 \pi \delta \left( \alpha + \beta \right) , \\
+\frac{2 \overline{c}_2}{\Delta_\eta} &= 
+\frac{\sqrt{H/g}\, \Gamma_n M}{2 \Delta_\eta m L_\rho} \left(-\overline{c}_u^{n} + m L_\rho \overline{s}_u^n \right)  - \frac{i m \Gamma_n M \hat{\gamma}_n}{k} - 4 \pi \delta \left( \alpha - \beta \right) .
+\end{align}
+Thus,
+\begin{align}
+k \cosh M/(2 L_\rho) \left[ \overline{c}_1 + 2 \pi \delta \Delta_\eta \left( \alpha + \beta \right) \right] & = \phantom{-} \frac{(-1)^n \omega k M b_n }{4 m g L_\rho}  - 2 i \Delta_\eta , \nonumber \\
+k \cosh M/(2 L_\rho) \left[ \overline{c}_2 + 2 \pi \delta \Delta_\eta \left( \alpha - \beta \right) \right] & = - \frac{(-1)^n \omega k M b_n }{4 m g L_\rho} - 2 i \Delta_\eta 
+\label{eqn:c1c2_bar_b} 
+\end{align}
+(see \texttt{RSW\_adjustment.mlx}).
+
+To ensure consistency between (\ref{eqn:c1c2_bar}) and (\ref{eqn:c1c2_bar_b}), we require $b_n = 0$ (because $m^2 L_\rho^2 + 1 \neq 0$).
+Hence, 
+\begin{align}
+\frac{\overline{c}_1}{\Delta_\eta} + 2 \pi \left( \alpha + \beta \right) \delta & = \frac{\overline{c}_2}{\Delta_\eta} + 2 \pi \left( \alpha - \beta \right) \delta  = - \frac{2 i }{k \cosh M/(2 L_\rho)}  \label{eqn:c1_c2} \\
+\implies
+\frac{c_1}{\Delta_\eta} & = - \frac{i }{k \cosh M/(2 L_\rho)} - \pi \left( \alpha + \beta \right) \delta(k) , \\
+\frac{c_2}{\Delta_\eta} & = - \frac{i }{k \cosh M/(2 L_\rho)} -  \pi \left( \alpha - \beta \right) \delta(k) 
+\end{align}
+using the definition of the overline operator (\ref{eqn:overline_operator}).
+
+These equations (\ref{eqn:c1_c2}) give the $\eta$ Kelvin wave component (from (\ref{eqn:Kwave_soln_eta}) and (\ref{eqn:Kwave_omegas})):
+\begin{align}
+\frac{\hat{\eta}_{KW}}{\Delta_\eta} = - &\frac{i }{k \cosh M/(2 L_\rho)} \left[ \exp  \left(\frac{y}{L_\rho} + i k \sqrt{g H} t \right) + \exp \left( - \frac{y}{L_\rho} - i k \sqrt{g H} t \right) \right] - \nonumber \\
+& \pi \delta(k) \left[
+\left( \alpha + \beta \right) \exp  \left(\frac{y}{L_\rho} + i k \sqrt{g H} t \right) + \left( \alpha - \beta \right) \exp \left( - \frac{y}{L_\rho} - i k \sqrt{g H} t \right) 
+\right] \\
+\implies
+\frac{2 \eta_{KW}}{\Delta_\eta} = & \;\sech M/(2 L_\rho) \left[ \expe^{y / L_\rho} \sign \left( x + \sqrt{g H} t \right) + \expe^{-y/  L_\rho} \sign \left( x - \sqrt{g H} t \right) \right] - \nonumber \\
+& \left( \alpha + \beta \right) \expe^{y/L_\rho} + \left( \alpha - \beta \right) \expe^{- y/L_\rho} 
+\label{eqn:channel_eg_eta_Kwave}
+\end{align}
+(because ${\mathcal F}_x^{-1} \left[ - (2 i / k) \exp \left( i c k t \right) \right] = \sign \left( x + c t \right)$ and ${\mathcal F}_x^{-1} \left[ \delta(k) \exp \left( \pm i c k t \right) \right] = 1/(2 \pi)$).
+Note that the final line in (\ref{eqn:channel_eg_eta_Kwave}) equals $2 \left( \alpha \cosh y/ \L_\rho + \beta \sinh y / L_\rho \right)$.
+
+Compute the $\eta$ IGW part starting from (\ref{eqn:channel_U_hat_E_hat}) (and (\ref{eqn:channel_example_IGW_coeffs})):
+\begin{align}
+\hat{E} & = \sum_n \frac{- i \Delta_\eta L_\rho \hat{\gamma}_n}{1 + m^2 L_\rho^2} \left( k \cos m y  + \frac{m \omega}{f} \sin m y  \right)
+, \\
+& = \sum_n \frac{- 8 i {\left(-1\right)}^n \Delta _{\eta } L_\rho^2}{m M \left( 1 + m^2 L_\rho^2 \right)}  \frac{ 1}{ 1 + \left( k^2 + m^2\right) L_\rho^2 } \left( k \cos m y  + \frac{m \omega}{f} \sin m y  \right)
+\label{eqn:channel_eg_E_h}
+\end{align}
+from the definition of $\hat{\gamma}_n$ in (\ref{eqn:gamma_hat_n}).
+Therefore the IGW part is
+\begin{align}
+\frac{\eta_{IGW}}{\Delta_\eta} & = \frac{1}{2 \pi} \Re \left\{  \int_{- \infty}^{\infty} \sum_n \frac{-8 i {\left(-1\right)}^n  L_\rho^2}{ m M \left( 1 + m^2 L_\rho^2 \right)}  \frac{ 1}{ 1 + \left( k^2 + m^2\right) L_\rho^2 } \left( k \cos m y  + \frac{m \omega}{f} \sin m y  \right) \exp \left[ i \left(k x - \omega t\right) \right] dk \right\} , \\
+& = \int_{- \infty}^{\infty} \sum_n \frac{2 {\left(-1\right)}^{n} L_\rho^2}{\pi m M \left( 1 + m^2 L_\rho^2 \right)}  \frac{ 1}{ 1 + \left( k^2 + m^2\right) L_\rho^2 } \left( k \cos m y  + \frac{m \omega}{f} \sin m y  \right) \times \nonumber \\
+& \sin \left( k x \mp \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right) dk  .
+\label{eqn:channel_eg_eta_IGW_intermediate}
+\end{align}
+Because only the even part of this integrand contributes and $\sin \left( kx \pm \omega t \right) = 2 \sin kx \cos \omega t$, we have
+\begin{align}
+\frac{\eta_{IGW}}{\Delta_\eta} & = \sum_n \frac{8 {\left(-1\right)}^n L_\rho^2 \cos m y}{\pi m M \left( 1 + m^2 L_\rho^2 \right)} \int_{0}^{\infty} \frac{ k \sin  k x  \cos \left( \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)}{ 1 + \left( k^2 + m^2\right) L_\rho^2 }  dk  .
+\label{eqn:channel_eg_eta_IGW}
+\end{align}
+
+Therefore, the full solution for $\eta$ is
+\begin{align}
+\frac{\eta}{\Delta_\eta} & = 
+\frac{1}{2} \sech M/(2 L_\rho) \left[ \expe ^{ -y / L_\rho} \sign \left( x - \sqrt{g H} t \right) + \expe ^{ y / L_\rho} \sign \left( x + \sqrt{g H} t \right) \right] - \alpha \cosh y/ \L_\rho - \beta \sinh y / L_\rho \nonumber \\
+& + \sum_n \frac{4 {\left(-1\right)}^{n} \cos m y }{m M \left( 1 + m^2 L_\rho^2 \right)}  \left\{ \sign(x) \left[ 1 -  \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right)\right] \right. \nonumber \\
+& + \left. \frac{2  L_\rho^2 }{\pi} \int_{0}^{\infty} \frac{ k \sin  k x  \cos \left( \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)}{ 1 + \left( k^2 + m^2\right) L_\rho^2 }  dk \right\} .
+\end{align}
+For $t=0$ the term in brackets inside the sum equals $\sign(x)$\footnote{Use (\ref{eqn:cosh_expansion}) and
+\begin{align}
+\int_{0} ^{\infty} \frac{k \sin k x }{a^2 + k^2 }  dk = \frac{\pi}{2} \sign(x) \expe ^{- |a x|}
+\end{align}
+from WolframAlpha (see also \citealt{gradshteyn&ryzhik00}, page 418; MATLAB struggles).
+% https://www.wolframalpha.com/input/?i=integrate+k*sin%28k*x%29%2F%28a%5E2%2Bk%5E2%29+wrt+k+from+0+to+infinity
+\label{fn:integral1}
+} and
+\begin{align}
+\sum_n \frac{4 {\left(-1\right)}^{n} \cos m y }{m M \left( 1 + m^2 L_\rho^2 \right)} & = 1 - \frac{\cosh y/L_\rho}{\cosh M/ (2 L_\rho)} .
+\end{align}
+Therefore,
+\begin{align}
+\sign(x) & = 
+\frac{\sign(x) \cosh y / L_\rho}{\cosh M/(2 L_\rho)} - \alpha \cosh y/ \L_\rho - \beta \sinh y / L_\rho  + \sign(x) \left[
+ 1 - \frac{\cosh y/L_\rho}{\cosh M/ (2 L_\rho)}
+\right] , \nonumber \\
+\implies 
+0 & = 
+\alpha \cosh y/ \L_\rho + \beta \sinh y / L_\rho  , \nonumber \\
+\implies
+\alpha & = \beta = 0
+\end{align}
+and finally
+\begin{mymathbox}[ams align, title=Infinite Channel Adjustment Example $\eta$ Solution, colframe=black!30!black]
+\frac{\eta}{\Delta_\eta} & = 
+\frac{ \expe ^{ -y / L_\rho} \sign \left( x - \sqrt{g H} t \right) + \expe ^{ y / L_\rho} \sign \left( x + \sqrt{g H} t \right) }{2 \cosh M/(2 L_\rho)} \nonumber \\
+& + \sum_n \frac{4 {\left(-1\right)}^{n} \cos m y }{m M \left( 1 + m^2 L_\rho^2 \right)}  \left\{ \sign(x) \left[ 1 -  \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right)\right] \right. \nonumber \\
+& + \left. \frac{2  L_\rho^2 }{\pi} \int_{0}^{\infty} \frac{ k \sin  k x  \cos \left( \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)}{ 1 + \left( k^2 + m^2\right) L_\rho^2 }  dk \right\} .
+\label{eqn:channel_eg_eta_soln}
+\end{mymathbox}
+This expression equals (6.24) of \citet{gill76} (see also his (3.5), (6.6), (7.1), and (7.2)).
+
+Similarly, the $u$ Kelvin wave component is (from (\ref{eqn:channel_eg_eta_soln}) and geostrophy)
+\begin{align}
+\frac{\sqrt{H/g}}{\Delta_\eta} u_{KW} & =
+ \left[ \expe ^{- y / L_\rho} \sign \left( x - \sqrt{g H} t \right) - \expe^{y / L_\rho } \sign \left( x + \sqrt{g H} t \right)\right] / 2 \cosh M/(2 L_\rho).
+\end{align}
+Compute the $u$ IGW part (which is not geostrophic) following (\ref{eqn:channel_eg_E_h}):
+\begin{align}
+\hat{U} & = \sum_n \frac{8 i {\left(-1\right)}^n \Delta _{\eta } L_\rho^2 }{m M \left[1 + \left( k^2 + m^2\right) L_\rho^2 \right]} \frac{f/H}{ 1 + m^2 L_\rho^2 } \left( \frac{\omega}{f}  \cos m y + m k L_\rho^2 \sin m y \right) .
+\end{align}
+Hence, following (\ref{eqn:channel_eg_eta_IGW_intermediate}) and (\ref{eqn:channel_eg_eta_IGW}),
+\begin{align}
+\frac{u_{IGW}}{\Delta_\eta}  & = 
+\int_{- \infty}^{\infty} \sum_n \frac{4 {\left(-1\right)}^n L_\rho^2}{\pi m M \left( 1 + m^2 L_\rho^2 \right)}  \frac{ f/H}{ 1 + \left( k^2 + m^2\right) L_\rho^2 } \left[ \sqrt{1 + \left( k^2 + m^ 2 \right) L_\rho^2} \;  \cos m y + m k L_\rho^2 \sin m y \right] \times \nonumber \\
+& \sin \left( k x \mp \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right) dk  
+\end{align}
+so that
+\begin{align}
+\frac{\sqrt{H/g}}{\Delta_\eta} u_{IGW} & = \sum_n \frac{8 {\left(-1\right)}^n L_\rho^3 \sin m y}{\pi M \left( 1 + m^2 L_\rho^2 \right)} \int_{0}^{\infty} \frac{ k \sin  k x  \cos \left( \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)}{ 1 + \left( k^2 + m^2\right) L_\rho^2 }  dk  .
+\end{align}
+So the full solution for $u$ is
+\begin{mymathbox}[ams align, title=Infinite Channel Adjustment Example $u$ Solution, colframe=black!30!black]
+\frac{\sqrt{H/g}}{\Delta_\eta} u & = 
+\frac{ \expe ^{ -y / L_\rho} \sign \left( x - \sqrt{g H} t \right) - \expe ^{y / L_\rho} \sign \left( x + \sqrt{g H} t \right)}{2 \cosh M/(2 L_\rho) } \nonumber \\
+& + \sum_n \frac{4 {\left(-1\right)}^{n} L_\rho \sin m y}{ M \left( 1 + m^2 L_\rho^2 \right)} \left\{ \sign(x)\left[ 1 -  \exp \left( - \sqrt{ 1 + m^2 L_\rho^2 } \; |x| /L_\rho \right)  \right] \right.\nonumber \\
+& \left. + \frac{2  L_\rho^2 }{\pi} \int_{0}^{\infty} \frac{ k \sin  k x  \cos \left( \sqrt{1 + \left( k^2 + m^2\right) L_\rho^2 } \; f t\right)}{ 1 + \left( k^2 + m^2\right) L_\rho^2 }  dk  \right\} .
+\label{eqn:channel_eg_u_soln}
+\end{mymathbox}
+This expression resembles (6.24) of \citet{gill76}.
+For $t=0$ the term in brackets inside the sum involves
+\begin{align}
+\sum_n \frac{4 {\left(-1\right)}^{n} L_\rho \sin m y }{M \left( 1 + m^2 L_\rho^2 \right)} & = \frac{\sinh y/L_\rho}{\cosh M/ (2 L_\rho)} 
+\end{align}
+from (\ref{eqn:sinh_expansion}) so that $u_i =0$, as required, following the argument for $\eta$ and footnote \ref{fn:integral1}.
+
+\subsubsection*{Comments:}
+\begin{itemize}
+\item The net along-channel transport after the IGWs and Kelvin waves pass is
+\begin{align}
+\int _{-M/2} ^{M/2} u_\infty \; d y & =  - \frac{g}{f} \int _{-M/2} ^{M/2} \frac{\partial \eta_\infty}{\partial y} \; dy, \nonumber \\
+ & =  - \frac{g L_\rho}{f} \left[ \eta (M/2) - \eta (-M/2) \right] , \nonumber \\
+ & =  - \frac{g L_\rho}{f} \tanh M / (2 L_\rho) ,
+\end{align}
+(see \citealt{gill76} (7.4)).
+This flux is directed from the initially high $\eta$ (positive $x$) to initially low $\eta$ (negative $x$).
+\item The full solution (\ref{eqn:channel_eg_v_soln}), (\ref{eqn:channel_eg_eta_soln}) and (\ref{eqn:channel_eg_u_soln}) requires computation of an infinite sum of integrals (cosine and sine transforms) over $k$ for every time of interest, namely,
+\begin{align}
+I_v (a, t) & = \int_{0} ^{\infty} \frac{ \cos k x \cos \left( \sqrt{a^2 + k^2 } \; t\right)}{ a^2 + k^2}  dk   , \\
+I_\eta (a, t)= I_u & = \int_{0}^{\infty} \frac{ k \sin  k x  \cos \left( \sqrt{a^2 + k^2 } \; t\right)}{ a^2 +  k^2  }  dk 
+\end{align}
+(in non-dimensional form with $a^2 = 1 + m^2$).
+They are
+\begin{align}
+I_v (a, t) & = \frac{\pi}{2 a} \expe^{- a x} \text{~for~} t \le x  \\
+I_\eta (a, t) & = \frac{\pi}{2} \expe^{- a x} \text{~for~} t < x < \infty
+\end{align}
+from \citet{erdelyi_etal54} pages 26 and 85, (33) and (27), respectively (see also \citealt{gradshteyn&ryzhik00} page 476).
+These expressions apply for large $x$ at times before the IGW wavefront passes.\footnote{What about a closed form expression after the waves pass?  Does it exist?}
+\item The information flow to compute the solution is depicted in Algorithm \ref{alg:channel_eg}:
+
+\begin{algorithm}[t]
+Using the initial conditions $u_i, v_i, \eta_i$, compute the initial PV $Q_i$ \;
+Using $Q_i$ and the impermeability boundary condition, compute $v_\infty$ in terms of the Fourier cosine expansion coefficients $\gamma_n$ \;
+From $v_\infty$ and $v_i$, compute the $v$ IGW coefficients, $\overline{c}^n$, and hence the $\eta$ and $u$ IGW coefficients $\overline{c}^n_\eta$ and $\overline{c}^n_u$, respectively \;
+Write $\eta$ and $u$ as sums of IGW components and Kelvin wave components \;
+Compute the Kelvin wave amplitudes $\overline{c}_1$ and $\overline{c}_2$ by matching the $\eta$ and $u$ fields to $\eta_i$ and $u_i$ at the initial time
+ \caption{Information flow to compute the solution to the RSW adjustment problem in an infinite channel.
+ \label{alg:channel_eg}}
+\end{algorithm}
+
+\item The present results coincide with those of \citet{gill76} but extend them to generic initial conditions.
+\item As \citet{pedlosky13} points out (his page 144), the Kelvin wave can assume arbitrary low frequency, unlike the inertia-gravity wave (for which, $\omega \ge f$). Hence, time-dependent forced problems with forcing frequency less than $f$ must be composed of Kelvin waves. The tide is a good example.
+\item See an animation of the $\eta, u, v$ solutions for the \citet{gill76} adjustment problem, including Lagrangian particle trajectories, in\\ \texttt{RSW\_adjustment\_movie.key}.
+\item Also, see numerical solution of the (non-linear) equations using the \texttt{oceananigans} model at \texttt{RSW\_channel\_adjustment.iynb}.
+
+\end{itemize}
+
+\subsection{Arbitrary Closed Domain}
+\label{sect:closed_domain}
+Now consider the numerical solution of the RSW adjustment problem in an arbitrary closed domain (like a lake).
+Make the follow assumptions:
+\begin{enumerate}
+\item Solve the $N=1$ layer reduced-gravity problem.
+\item Apply vertical side walls and a flat bottom, so the impermeable boundary is specified as a curve in $(x,y)$. 
+\item Solve the inviscid problem.
+\item Find the modes first, then solve the initial value problem and check against theoretical and \texttt{Oceananigans} simulation results . 
+\end{enumerate}
+
+The regular RSW equations (\ref{eqn:linear_RSW_vel_comp_form}) (or (\ref{eq:lin_vort_div_RSW})) are not in canonical divergence form for the MATLAB PDE solver.
+Therefore, they must be manipulated.
+One option is to separate the fast (IGW) and slow (PV) dynamics, as explained in section \ref{sect:fast_slow}.
+This leads to equations in divergence form, but the MATLAB PDE solver cannot handle them (see footnote \ref{footnote:close_to_canonical_form}).
+
+Another option is to use the Klein-Gordon equations (\ref{eqn:Klein_Gordon_form}) as follows:
+Assume time dependence as $\expe^{-i \omega t}$ with frequency $\omega$.
+Thus,
+\begin{align}
+\left( \omega^2 + g H \nabla^2 - f^2 \right)\begin{pmatrix}
+u \\
+v \\
+\eta
+\end{pmatrix} & = 
+f H \begin{pmatrix}
+-g \partial_y \\
+\phantom{-}g \partial_x \\
+\phantom{-}f 
+\end{pmatrix} Q_i.   
+\label{eqn:1_layer_RSW_forced_Helmholtz}
+\end{align}
+The boundary conditions are impermeable walls, $\uu \cdot \nn = 0$ for outward normal vector $\nn$ on boundary ${\partial \Omega}$ which encloses (simply-connected) domain $\Omega$, and 
+\begin{align}
+\int_\Omega \eta \, d \x = 0 .
+\end{align}
+The $\eta$ boundary condition follows from the RSW momentum equations (\ref{eqn:x_mom}), (\ref{eqn:y_mom}), by dotting with $\nn = (n_x, n_y)$:\footnote{What happens if the initial conditions don't satisfy (\ref{eqn:eta_bc1})?}
+\begin{align}
+g \nabla \eta \cdot \nn & = f \uu \cdot \ttt
+\label{eqn:eta_bc1}
+\end{align}
+for tangent vector $\tt$ ($\nn \cdot \ttt = 0$ with $(\nn, \ttt)$ forming an $(x,y)$ coordinate system).\footnote{An additional $u_t^2$ term appears in the non-linear equations. See \citet{ring09}, equation (61).}
+This condition is geostrophic.
+Dotting  (\ref{eqn:x_mom}), (\ref{eqn:y_mom}) with $\ttt = (- n_y, n_x)$ and substituting from (\ref{eqn:eta_bc1}) gives
+\begin{align}
+\partial_t \uu \cdot \ttt & = - g \nabla \eta \cdot \ttt  , \\
+\implies \partial_t \left( \frac{g}{f} \nabla \eta \cdot \nn \right) & = - g \nabla \eta \cdot \ttt  , \\
+\implies f \, \nabla \eta \cdot \ttt & = -  \nabla \left( \partial_t \eta \right) \cdot \nn  , \\
+\implies f \, \nabla \eta \cdot \ttt & = i \omega \,  \nabla \eta \cdot \nn 
+\end{align}
+(see \citealt{pratt&whitehead08}, (2.1.25); \citealt{pedlosky13}, Lecture 13; \citet{lamb32}, \S209 equation (7)).\footnote{\label{fn:not_canonical_form}Note that this boundary condition is not in the canonical MATLAB form because it involves $\omega$ and also because the $\nabla \eta \cdot \ttt$ term cannot be written as $g - q u$ in MATLAB terminology, where $q$ and $g$ are known functions on the boundary and $u$ is the unknown field.}
+Note that these boundary conditions do not provide independent constraints beyond the impermeability boundary condition.
+However, they furnish an uncoupled problem in $\eta$ alone:
+\begin{align}
+\left( \omega^2 + g H \nabla^2 - f^2 \right)
+\eta
+ & = 
+f^2 H  Q_i, \nonumber   \\
+f \, \nabla \eta \cdot \ttt & = i \omega \,  \nabla \eta \cdot \nn ,
+\label{eqn:uncoupled_eta_problem}
+\end{align}
+which can be solved as the superposition of free oscillating modes $\omega > 0$ and a particular solution ($\omega = 0$) forced by the initial PV.
+
+We retain the possibility that $f=0$, so the non-dimensionalization is naturally given by
+\begin{align}
+(x, y) &= L\, (x^*, y^*) , \nonumber \\
+t &= \frac{L}{\sqrt{g H}}\, t^*  , \nonumber \\
+\implies \omega &=   \frac{\sqrt{g H}}{L} \omega^* , \nonumber \\
+\implies (u,v) & = \sqrt{g H} \, (u^*, v^*) , \nonumber \\
+\eta & = \Delta \eta \, \eta^* , \nonumber \\
+Q_i & = \frac{\Delta \eta}{H} \, Q_i^* ,
+\end{align}
+where $L$ is the lengthscale of the domain in question (non-dimensional variables have star superscripts). 
+In words, the timescale is set by the gravity wave domain crossing time.
+Notice that this non-dimensionalization is different to that given by \citet{pratt&whitehead08} (p.~109) who pick $1/f$ as the characteristic timescale.
+
+Hence, (dropping stars on the variables)
+\begin{align}
+\left( \omega^2 + \nabla^2 - \frac{f^2 L^2}{g H} \right)
+\eta
+ & = 
+\frac{f^2 L^2}{g H} Q_i.   \\
+\frac{f L}{\sqrt{g H}} \, \nabla \eta \cdot \ttt & = i \omega \,  \nabla \eta \cdot \nn .
+\label{eqn:nondim_uncoupled_eta_problem}
+\end{align}
+Therefore, the non-dimensional equations for the modes (homogeneous solutions to (\ref{eqn:1_layer_RSW_forced_Helmholtz})) are in eigensystem form, using $ F = f^2 L^2 / (g H)$ as the non-dimensional inverse Froude number:
+\begin{mymathbox}[ams align, title=Non-dimensional 1-layer RSW modes in arbitrary domain, colframe=black!30!black]
+\left(  \nabla^2 - F \right) \eta
+& = 
+- \omega^2 \eta
+ , \nonumber \\
+ \left. \nabla \eta \cdot \nn \right|_{\partial \Omega} & = - \frac{i}{\omega} \sqrt{F} \left. \nabla \eta \cdot \ttt\right|_{\partial \Omega} ,  
+ \label{eqn:non_dim_1_layer_RSW_problem} \\
+\left(  \nabla^2 - F \right) \begin{pmatrix}
+u \\
+v
+\end{pmatrix}
+& = 
+- \omega^2 \begin{pmatrix}
+u \\
+v
+\end{pmatrix}
+ , \nonumber \\
+  \left. \uu \cdot \nn \right|_{\partial \Omega} &= 0 , \nonumber  \\
+\uu \cdot \ttt |_{\partial \Omega} & = \frac{\sqrt{F} \Delta \eta}{H} \nabla \eta  \cdot \nn |_{\partial \Omega}
+\end{mymathbox}
+The problem is solved first for the $\eta$ modes and frequencies $\omega$, and then for the $(u,v)$ modes given $\omega$ and $\eta$ (if necessary).
+The eigenproblem is non-standard because of the presence of $\omega$ and the tangential derivatives in the boundary conditions (see footnote \ref{fn:not_canonical_form}).
+The system cannot be solved by the MATLAB PDE solver, but it can be solved using Julia packages (see Appendix \ref{app:FEM}).
+
+The problem for the steady state is (particular solution to (\ref{eqn:1_layer_RSW_forced_Helmholtz}), (\ref{eqn:uncoupled_eta_problem})):
+\begin{mymathbox}[ams align, title=Non-dimensional 1-layer RSW steady state in arbitrary domain, colframe=black!30!black]
+\left(  \nabla^2 - F \right)
+\eta_\infty
+& =  F  Q_i , \nonumber \\
+\left. \eta_\infty \right|_{\partial \Omega} & = 0 . \\
+ \begin{pmatrix}
+- u_\infty \\
+\phantom{-} v_\infty \\
+\end{pmatrix} & = 
+\frac{\sqrt{F} \Delta \eta}{H} \begin{pmatrix}
+\partial_y \\
+\partial_x \\
+\end{pmatrix} \eta_\infty
+\end{mymathbox}
+The (simply-connected) domain shape $\Omega$ is chosen freely.
+
+The full solution is computed from 
+\begin{align}
+\begin{pmatrix}
+u \\
+v \\
+\eta
+\end{pmatrix} & = 
+\begin{pmatrix}
+u_\infty \\
+v_\infty \\
+\eta_\infty
+\end{pmatrix} +
+\Re \left\{
+\sum_j 
+a_{j}  \begin{pmatrix}
+u_j \\
+v_j \\
+\eta_j
+\end{pmatrix} 
+\expe^{- i \omega_j t}
+\right\} ,
+\label{eqn:full_modal_eta_solution}
+\end{align}
+where the modes (eigenvectors) are $\left( u_j, v_j, \eta_j \right)$ with corresponding frequencies $\omega_i$ (square root of the eigenvalues from (\ref{eqn:non_dim_1_layer_RSW_problem})) and $a_{j}$ are the amplitudes.
+The amplitudes are found from the $(\eta, u, v)$ initial conditions.
+For example, (\ref{eqn:full_modal_eta_solution}) gives at $t=0$
+\begin{align}
+\eta_i - \eta_\infty & =  \Re \left\{ \sum_j  a_{j} \eta_j \right\} . 
+\label{eqn:eta_constraint}
+\end{align}
+And (\ref{eqn:cont}) in the present non-dimensional form gives at $t=0$
+\begin{align}
+\frac{\Delta \eta}{H} \frac{\partial \eta_i}{\partial t } + \frac{\partial u_i}{\partial x} + \frac{\partial v_i}{\partial y}  &= 0 , \nonumber \\
+\implies
+\frac{\Delta \eta}{H} \Re \left\{ \sum_j - i \omega_j \, a_{j} \eta_j \right\}  +  \frac{\partial u_i}{\partial x} + \frac{\partial v_i}{\partial y}  &= 0 , \label{eqn:eta_tendency_constraint}
+\end{align}
+which involves the initial divergence field.
+Similarly, (\ref{eqn:intermediate_eta}) gives:
+\begin{align}
+\frac{\Delta \eta}{H} \frac{\partial^2 \eta_i}{\partial t^2 } + \sqrt{F} \left( \frac{\partial v_i}{\partial x} - \frac{\partial u_i}{\partial y} \right) - \frac{\Delta \eta}{H} \nabla^2 \eta_i &= 0   \nonumber \\
+\implies
+\frac{\Delta \eta}{H} \Re \left\{ \sum_j - \omega_j^2 \, a_{j} \eta_j \right\}  + \sqrt{F} \left( \frac{\partial v_i}{\partial x} - \frac{\partial u_i}{\partial y} \right) - \frac{\Delta \eta}{H} \nabla^2 \eta_i &= 0 , \label{eqn:eta_acceleration_constraint}
+\end{align}
+which involves the initial vorticity field.
+Equations (\ref{eqn:eta_constraint}), (\ref{eqn:eta_tendency_constraint}), and (\ref{eqn:eta_acceleration_constraint}) provide enough information to determine the $a_j$ modal expansion coefficients, for example using singular-value decomposition (in general the modes are not orthogonal).\footnote{To solve
+\begin{align}
+{\bf y} = \Re \left\{ {\bf E} {\bf x} \right\} ,
+\end{align}
+use real and imaginary parts to write ${\bf E} = {\bf E}_r + i {\bf E}_i$ and ${\bf y} = {\bf y}_r + i {\bf y}_i$, which gives
+\begin{align}
+{\bf y} =  {\bf E}_r {\bf x}_r -{\bf E}_i {\bf x}_i .
+\end{align}
+Hence, solve the problem
+\begin{align}
+{\bf y} = \left({\bf E}_r ,  -{\bf E}_i \right)  
+\begin{pmatrix} {\bf x}_r \\
+{\bf x}_i 
+\end{pmatrix}.
+\end{align}
+and finally ${\bf x} = {\bf x}_r + i {\bf x}_i$.
+% See real_particular_svd_tester.jl
+}
+Note that the cubic eigenvalue problem in Appendix \ref{app:FEM} yields three times as many modes as the normal (linear) eigenvalue problem. 
+Therefore, three times as many constraints are necessary to specify the $a_j$ modal coefficients.
+Once these coefficients are found, the $u$ and $v$ fields follow immediately from (\ref{eqn:full_modal_eta_solution}).
+Note also that the ``modes'' of the eigenvalue problem (\ref{eqn:non_dim_1_layer_RSW_problem}) are {\it not} the same as the theoretical IGW ``modes.''
+
+Several examples are given in \texttt{RSW\_adjustment\_movie.key}. First, \texttt{Oceananigans} solutions for adjustment in a rectangle are shown for various values of $F$. Then \texttt{Oceananigans} solutions are compared to \texttt{gridap} solutions constructed by superposing modes of the eigenvalue problem (\ref{eqn:non_dim_1_layer_RSW_problem}) for various values of $F$ in the square domain.
+Next, some solutions in the rectangle are shown.
+Then finally, the numerical eigenmodes (frequencies $\omega$) are plotted against $F$ for various resolutions and domains, plus some mode shapes and comments on the eigenmode properties.
+
+\section{Potential Extensions and Applications}
+\begin{enumerate}
+\item Solve the $N$ layer problem.
+\item Extend the problem to an arbitrary topography in $N$ layers. 
+Adding bottom topography that is entirely contained within the deepest layer is straightforward (all layers retain vertical side walls).
+See \citep{vallis06}.
+\item Add damping.
+\item Solve in a periodic domain.
+\item Solve in an open gulf (like a fjord). Then solve the boundary-forced problem.
+\item Add background flow then find unstable modes.
+\end{enumerate}
+
+Heading where?  
+\begin{enumerate}
+\item Physics of Kelvin wave
+\item Geostrophic adjustment of a step in a channel as in OC3D Fig. 8.11 and \citet{wajsowicz&gill86}.
+\item IGW radiation from an initial condition generates Kelvin wave. Animations and numerical code.
+\item Numerical solution for arbitrary gulf, including connection with FFT and for $N$ layers.
+\item Stability analysis for a given moving basic state.
+\end{enumerate}
+
+\clearpage
+\appendix
+
+\section{Diagonalization of the $N$-layer RSW Equations}
+\label{app:Nlayer_diagonalization}
+Initially, consider the $N=2$ case \citep{ring09}, then generalize to arbitrary $N$:\footnote{This Appendix needs to be completed. The $N=2$ case is complete, but not the arbitrary $N$ case.}
+The problem is in an arbitrary domain $\Omega$, so the approach in section \ref{sect:heuristic_RSW_N2} of Fourier transformation in $x$ and $y$ for the infinite plane doesn't work.
+
+Following (\ref{eqn:u1_mom_Neq2})--(\ref{eqn:h2_cont_Neq2}), the 2-layer linear RSW equations are:
+\begin{align}
+\frac{\partial u_1}{\partial t }  - f v_1 &= -g \left( \frac{\partial h_1}{\partial x} + \frac{\partial h_2}{\partial x} \right) , \nonumber   \\
+\frac{\partial v_1}{\partial t }  +f u_1 &= -g \left( \frac{\partial h_1}{\partial y} + \frac{\partial h_2}{\partial y} \right) , \nonumber   \\
+\frac{\partial h_1}{\partial t }  + H_1 \left( \frac{\partial u_1}{\partial x} + \frac{\partial v_1}{\partial y} \right) &= 0  , \nonumber \\
+\frac{\partial u_2}{\partial t }  - f v_2 &= -g \left( \frac{\partial h_1}{\partial x} + \frac{\partial h_2}{\partial x} \right)  - g' \frac{\partial h_2}{\partial x} , \nonumber  \\
+\frac{\partial v_2}{\partial t }  +f u_2 &= -g \left( \frac{\partial h_1}{\partial y} + \frac{\partial h_2}{\partial y} \right)  - g' \frac{\partial h_2}{\partial y} , \nonumber  \\
+\frac{\partial h_2}{\partial t }  + H_2 \left( \frac{\partial u_2}{\partial x} + \frac{\partial v_2}{\partial y} \right) &= 0   
+\label{eqn:2layer_coupled_linear_RSW}
+\end{align}
+with reduced gravity
+\begin{equation}
+g' = g \frac{\rho_2 - \rho_1}{\rho_0}  ,
+\end{equation}
+and mean layer thicknesses $H_1, H_2$ in layers 1 and 2, respectively.
+The boundary is specified by a curve ${\partial \Omega}(x,y)$ which encloses (simply-connected) domain $\Omega$ and is impermeable so the normal flow vanishes on ${\partial \Omega}$.\footnote{Extend to a partially-open domain with specified boundary conditions.}
+Initial conditions are specified as $\eta_i, u_i, v_i$ and we require that 
+\begin{align}
+\int_\Omega h_i \, d \x = H_i .
+\end{align}
+
+We want to decouple the six equations into two uncoupled sets of three equations of the form (\ref{eqn:linear_RSW_vel_comp_form}) with a suitable linear combination of the layer velocities and thicknesses.
+Then the system is solved as two problems of the form (\ref{eqn:diagonal_1layer_RSW}).
+Specifically, define the target three equation system as
+\begin{align}
+\frac{\partial u^*}{\partial t }  - f v^* &= -g^* \frac{\partial h^*}{\partial x} , \nonumber \\
+\frac{\partial v^*}{\partial t }  +f u^* &= -g^* \frac{\partial h^*}{\partial y} , \nonumber  \\
+\frac{\partial h^*}{\partial t } + H^* \left( \frac{\partial u^*}{\partial x} + \frac{\partial v^*}{\partial y} \right) &= 0 ,
+\label{eqn:canonical_linear_RSW_vel_comp_form}
+\end{align}
+where
+\begin{align}
+(u^*, v^* ) &= (u_1, v_1) + \alpha (u_2, v_2) , 
+\end{align}
+for parameter $\alpha$ that needs to be determined (it will have two values, corresponding to the two sets of equations of the form (\ref{eqn:canonical_linear_RSW_vel_comp_form})).
+From (\ref{eqn:2layer_coupled_linear_RSW}), one obtains
+\begin{align}
+\frac{\partial u^*}{\partial t }  - f v^* &= - g (1 + \alpha) \frac{\partial}{\partial x} (h_1 + h_2) - \alpha g' \frac{\partial h_2}{\partial x}  \equiv  -g^* \frac{\partial h^*}{\partial x}  ,  \\
+\frac{\partial}{\partial t } \left( \frac{h_1}{H_1} + \alpha \frac{h_2}{ H_2} \right) + \left( \frac{\partial u^*}{\partial x} + \frac{\partial v^*}{\partial y} \right) &= 0 \equiv
+\frac{1}{H^*}\frac{\partial h^*}{\partial t } + \left( \frac{\partial u^*}{\partial x} + \frac{\partial v^*}{\partial y} \right) 
+\end{align}
+(with a similar $v^*$ equation).
+Therefore, 
+\begin{align}
+g^* h^* & = g( 1+ \alpha) (h_1 + h_2) + g' \alpha h_2, \label{eqn:gstar_hstar} \\
+\frac{h^*}{H^*}& = \frac{h_1}{H_1} + \alpha \frac{h_2}{H_2} , \label{eqn:hstar_o_Hstar}\\
+\implies
+g( 1+ \alpha) (h_1 + h_2) + g' \alpha h_2 &=
+g^* H^* \left( \frac{h_1}{H_1} + \alpha \frac{h_2}{H_2} \right) . 
+\end{align}
+The $h_1$ and $h_2$ fields can vary independently, so the coefficients multiplying each of them must be the same:
+\begin{align}
+g( 1+ \alpha)  &= \frac{g^* H^*}{H_1} ,  \label{eqn:gstar_Hstar1} \\
+g( 1+ \alpha)  + g' \alpha  &= \frac{\alpha g^* H^*}{H_2} ,
+\end{align}
+which implies that $\alpha$ satisfies the quadratic
+\begin{align}
+%g H_1 \alpha ( 1+ \alpha)  &= H_2 \left[ g( 1+ \alpha)  + g' \alpha \right] , \\
+%\implies
+\alpha^2 + \left[ 1 - \left( 1 + \frac{g'}{g} \right) \frac{H_2}{H_1}  \right] \alpha - \frac{H_2}{H_1} & = 0 .
+%\implies
+%\alpha = \frac{- \left[ 1 - \left[ 1 + (g'/g)  \right] (H_2/H_1)  \right] \pm \sqrt{\left[ 1 - \left[ 1 + (g'/g) \right] (H_2/H_1)  \right]^2 + 4 ( H_2/H_1)}}{2 } .
+\end{align}
+% Notice this is different to Ring (2009) section 5.1 because her (214) differs from my layer 2 momentum equation (her error?)
+With the two values of $\alpha$ determined, $g^* h^*$ is given by (\ref{eqn:gstar_hstar}) and $g^* H^*$ is given by (\ref{eqn:gstar_Hstar1}).
+Then the system (\ref{eqn:diagonal_1layer_RSW}) is solved with inverse Froude number $F$ from 
+\begin{align}
+F = \frac{f^2 L^2}{g^* H^*} .
+\end{align}
+The original $u$ variables are found by solving
+\begin{align}
+\begin{pmatrix}
+u^*_+ \\
+u^*_-
+\end{pmatrix} & = 
+\begin{pmatrix}
+1 & \alpha_+ \\
+1 & \alpha_- \\
+\end{pmatrix}
+\begin{pmatrix}
+u_1 \\
+u_2
+\end{pmatrix}
+\end{align}
+(similarly for the $v$ components).\footnote{To do: \begin{itemize} \item How are the $h$ fields found from $g^* h^*$ and $g^* H^*$?  Is $g^*$ arbitrary? 
+\item How is this procedure generalized to convert the $N$ layer RSW equations into $N$ sets of three uncoupled equations that are isomorphic?  I.e., to build a block diagonal operator.
+\end{itemize}}
+
+\section{Finite Element Method to Solve the RSW Equations}
+\label{app:FEM}
+One approach to solving the RSW problem numerically is the finite element method (FEM). 
+This is the approach of the MATLAB PDE solver.
+From (\ref{eqn:nondim_uncoupled_eta_problem}), the non-dimensional homogeneous problem is
+\begin{align}
+\left( \omega^2 + \nabla^2 - F \right)
+\eta & =  0\\
+\left. \nabla \eta \cdot \nn \right|_{\partial \Omega} & = -  \frac{i}{\omega} \sqrt{F}\, \nabla \eta \cdot \ttt \left. \right|_{\partial \Omega},
+\end{align}
+where $F = f^2 L^2 / (g H)$ is the inverse Froude number and the boundary condition on $\partial \Omega$ involves outward normal direction $\nn$ and tangent vector $\ttt$ lying to its left.
+Construct the weak form of this problem by multiplying with test function $\psi$ (not the streamfunction here) and integrating over the domain $\Omega$:
+\begin{align}
+\int_\Omega \psi \left( \omega^2 + \nabla^2 - F \right) \eta \; d A & =  0 , \nonumber \\
+\implies 
+\int_\Omega \psi  \nabla \cdot \left( \nabla \eta \right)  \; d A - F \int_\Omega \psi \eta \; d A & = - \omega^2 \int_\Omega \psi \eta \; d A , \nonumber \\
+\implies 
+\int_ \Omega  \nabla \cdot \left( \psi \nabla \eta \right) - \nabla \psi \cdot   \nabla \eta  \; d A - F \int_\Omega \psi \eta \; d A & = - \omega^2 \int_\Omega \psi \eta \; d A , \nonumber \\
+\implies 
+- \int_ {\partial \Omega}  \psi \nabla \eta \cdot \nn \; d s +  \int_\Omega \nabla \psi \cdot   \nabla \eta  \; d A + F \int_\Omega \psi \eta \; d A & = \omega^2 \int_\Omega \psi \eta \; d A , \nonumber \\
+\implies 
+i \frac{\sqrt{F}}{\omega} \int_ {\partial \Omega}  \psi \nabla \eta \cdot \ttt \; d s + \int_\Omega \nabla \psi \cdot   \nabla \eta  \; d A + F \int_\Omega \psi \eta \; d A & = \omega^2 \int_\Omega \psi \eta \; d A , \nonumber \\
+\implies 
+\int_\Omega \omega^3 \psi \eta - \omega \left(  \nabla \psi \cdot   \nabla \eta  + F \psi \eta \right) \; d A - i \sqrt{F} \int_ {\partial \Omega}  \psi \nabla \eta \cdot \ttt \; d s & = 0 , 
+\end{align}
+where $s$ measures distance anti-clockwise around $\partial \Omega$.
+In this sequence Green's identity is used to convert the area integral of a divergence into a boundary line integral of the normal flux, and the boundary condition is then used.
+
+The FEM method now expands $\eta$ and $\psi$ as a superposition of $N$ basis functions that are compact on an unstructured triangular mesh (see, e.g., \citealt{zwillinger98}).
+For instance, a simple choice when $\Omega$ is 2D is the piecewise linear pyramid functions (by default, the MATLAB PDE toolbox uses quadratic basis functions).
+The basis functions are $\Psi_j (x_j,y_j)$ are local to the node $(x_j, y_j)$ in the sense that they have compact support. 
+In the limit $N \rightarrow \infty$, the test functions converge to the Dirac delta function $\Psi_j (x_j, y_j) \rightarrow \delta(x, y)$.
+Hence, 
+\begin{align}
+\tilde{\eta} (x_j, y_j) = \sum_{j=1}^N \tilde{\eta}_j \Psi_j \approx \eta (x_j, y_j) , 
+\end{align}
+where $\tilde{\eta}_j$ is an $N \times 1$ vector of expansion coefficients to be determined.
+Now set the test function $\psi$ equal to the sequence of $N$ basis functions $\Psi_i$ to give
+\begin{align}
+\int_\Omega \omega^3 \Psi_i \Psi_j \tilde{\eta}_j  - \omega \left( \nabla \Psi_i \cdot   \nabla \Psi_j  +  F \Psi_i \Psi_j \right) \tilde{\eta}_j \; d A - i \sqrt{F} \int_ {\partial \Omega}  \Psi_i \nabla \Psi_j \tilde{\eta}_j \cdot \ttt \; d s & = 0 
+\label{eqn:FEM_problem}
+\end{align}
+or
+\begin{align}
+\left[ \omega^3 \M - \omega \left( \K  +  F \M \right) - i \sqrt{F} \LL \right] \tilde{\eta} & = 0  ,
+\label{eqn:hat_eta_problem}
+\end{align}
+where
+\begin{align}
+\left\{ \M \right\}_{i j}  &= \int_\Omega   \Psi_i \Psi_j \; dA , \\
+\left\{ \K \right\}_{i j} &= \int_\Omega   \nabla \Psi_i \cdot   \nabla \Psi_j \; dA , \\
+\left\{ \LL \right\}_{i j} & =  \int_ {\partial \Omega}  \Psi_i \nabla \Psi_j \cdot \ttt \; d s .
+\end{align}
+These matrices $\M$ (the mass matrix), $\K$ (the stiffness matrix), and $\LL$ are sparse because the $\Psi_j$ functions have compact support.
+The matrices can all be computed once the mesh and the basis functions are defined (although $\LL$ is not available in the MATLAB PDE solver).
+$\M$ and $\K$ are symmetric, but $\LL$ is not: this introduces the symmetry-breaking associated with the boundary condition and the dependence on the sign of $f$. 
+$\M$ converges to the identity matrix as $N \rightarrow \infty$.
+
+What remains is to compute $\tilde{\eta}$ from (\ref{eqn:hat_eta_problem}).
+This is a polynomial (depressed cubic) eigenvalue problem for sets of $(\omega, \tilde{\eta})$ eigenvalues and eigenvectors (the MATLAB \texttt{polyeig} function can solve this problem in principle).
+Notice that for $f \rightarrow 0$, (\ref{eqn:hat_eta_problem}) collapses to a regular (linear) eigenvalue problem.
+Kelvin waves along the boundary correspond to $\omega = \pm k$ for along boundary wavenumber $k$ $\partial \Omega$: This involves dropping the $\omega^3$ term in (\ref{eqn:hat_eta_problem}) and applies for large $F$.
+Far from boundaries, the dynamics collapses to IGWs as the $\LL$ term drops out.
+
+Notice that $\omega = \sqrt{F}$ is always a solution to (\ref{eqn:hat_eta_problem}), in which case $\tilde{\eta}$ is a null space vector $ \K + i  \LL$, namely,
+\begin{align}
+ \int_\Omega  \nabla \Psi_i \cdot   \nabla \Psi_j  \tilde{\eta}_j \; d A + i  \int_ {\partial \Omega}  \Psi_i \nabla \Psi_j \tilde{\eta}_j \cdot \ttt \; d s & = 0 .
+\end{align}
+This $\tilde{\eta}$ field has no dependence on $F$ (which is strange!).
+
+The Julia package \texttt{gridap} can solve FEM problems of the type (\ref{eqn:FEM_problem}). 
+And the Julia package \texttt{NonlinearEigenproblems} can solve the cubic eigenvalue problem (\ref{eqn:hat_eta_problem}).
+This is how the problem is solved in \texttt{Numerical\_RSW\_square\_time\_dependent.ipynb}.
+The code is tested by comparing the solution for the square domain and various $F$ values with the results of an \texttt{Oceananighans} direct numerical simulation.
+See \texttt{RSW\_adjustment\_movie.key} for details.
+
+
+\bibliographystyle{agu04}
+\bibliography{Theory_notes}
+
+\end{document}
+
+
+The non-dimensional inertial period is $2 \pi$.
+Unfortunately, the final integral condition isn't in the MATLAB canonical PDE form.
+It can be appended as a constraint, however.
+See \texttt{Numerical\_RSW\_arbitrary\_domain.mlx} and especially \texttt{solvepdeeig\_TWNH.m} (currently the constraint applies to the sum over the finite element nodes, not the integral over $\Omega$, but the difference between them is small).
+
+Similarly, the non-dimensional equations for the particular solution to (\ref{eqn:1_layer_RSW_forced_Helmholtz}) are
+\begin{mymathbox}[ams align, title=Particular non-dimensional 1-layer RSW equations, colframe=black!30!black]
+\left(  \nabla^2 - 1 \right)\begin{pmatrix}
+u_\infty \\
+v_\infty \\
+\eta_\infty
+\end{pmatrix} & = 
+\begin{pmatrix}
+- \partial_y \\
+\phantom{-} \partial_x \\
+1
+\end{pmatrix} \left( \frac{\partial v_i}{\partial x} - \frac{\partial u_i}{\partial y} - \eta_i \right) , \nonumber \\
+\left. \uu_\infty \cdot \nn \right|_{\partial \Omega} &= 0 , \nonumber  \\
+\uu_\infty \cdot \ttt & = \left. \nabla \eta_\infty \cdot \nn \right|_{\partial \Omega}  , \nonumber  \\
+\eta_\infty |_{\partial \Omega} &= 0
+\end{mymathbox}
+(see \citealt{pratt&whitehead08}, (2.1.24), (2.1.34), (2.1.35)).
+This problem can be solved for $\eta_\infty$ from the forced Helmholtz equation with homogeneous Dirichlet boundary conditions.
+Then the velocity $\uu_\infty$ can be computed from the coupled Helmholtz problem with Dirichlet boundary conditions set by $\left. \nabla \eta_\infty \cdot \nn \right|_{\partial \Omega}$.\footnote{This approach fits the MATLAB PDE canonical form, which requires one boundary condition for each equation (or imposes one), but doesn't allow computation of state derivatives with Dirichlet conditions. Other approaches are possible, but it's hard to fit the canonical form for MATLAB.}
