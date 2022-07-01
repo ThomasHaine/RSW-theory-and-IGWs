@@ -8,7 +8,7 @@ RSW theory and IGWs
 <!--[![Documentation Status](https://readthedocs.org/projects/rsw_theory_and_igws/badge/?version=latest)](https://rsw_theory_and_igws.readthedocs.io/en/latest/?badge=latest)-->
 
 
-Notes, codes, and visualizations from class on rotating shallow water theory
+Notes, codes, and visualizations on rotating shallow water (RSW) theory, inertia-gravity waves, and geostrophic adjustment.
 
 Directories contain theory, numerical verification, and numerical solution to RSW IGW problems.
 
