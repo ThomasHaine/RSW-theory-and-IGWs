@@ -1,8 +1,7 @@
 RSW theory and IGWs
 ==============================
 [![.github/workflows/release.yaml](https://github.com/ThomasHaine/RSW-theory-and-IGWs/actions/workflows/release.yaml/badge.svg)](https://github.com/ThomasHaine/RSW-theory-and-IGWs/actions/workflows/release.yaml)
-#[![codecov](https://codecov.io/gh/ThomasHaine/rsw_theory_and_igws/branch/main/graph/badge.svg)](https://codecov.io/gh/ThomasHaine/rsw_theory_and_igws)
-[![License:MIT](https://img.shields.io/badge/License-MIT-lightgray.svg?style=flt-square)](https://opensource.org/licenses/MIT)[![pypi](https://img.shields.io/pypi/v/rsw_theory_and_igws.svg)](https://pypi.org/project/rsw_theory_and_igws)
+[![License:MIT](https://img.shields.io/badge/License-MIT-lightgray.svg?style=flt-square)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6798842.svg)](https://doi.org/10.5281/zenodo.6798842)
 
 
