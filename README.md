@@ -6,6 +6,7 @@ RSW theory and IGWs
 <!-- [![conda-forge](https://img.shields.io/conda/dn/conda-forge/rsw_theory_and_igws?label=conda-forge)](https://anaconda.org/conda-forge/rsw_theory_and_igws) 
 -->
 <!--[![Documentation Status](https://readthedocs.org/projects/rsw_theory_and_igws/badge/?version=latest)](https://rsw_theory_and_igws.readthedocs.io/en/latest/?badge=latest)-->
+[![.github/workflows/release.yaml](https://github.com/ThomasHaine/RSW-theory-and-IGWs/actions/workflows/release.yaml/badge.svg)](https://github.com/ThomasHaine/RSW-theory-and-IGWs/actions/workflows/release.yaml)
 
 
 Notes, codes, and visualizations on rotating shallow water (RSW) theory, inertia-gravity waves, and geostrophic adjustment.
