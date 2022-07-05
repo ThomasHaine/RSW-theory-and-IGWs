@@ -18,6 +18,6 @@ For JHU, E\&PS Fluids II, Spring '21.
 
 Some code is in MATLAB, some in Julia (Oceananigans for DNS, gridap for arbitrary domain modal solution).
 
---------
+Comments welcome!
 
-<p><small>Project based on the <a target="_blank" href="https://github.com/jbusecke/cookiecutter-science-project">cookiecutter science project template</a>.</small></p>
+--------
