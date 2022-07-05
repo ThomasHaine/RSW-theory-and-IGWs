@@ -13,7 +13,7 @@ To get started see Write up/Theory notes.pdf
 
 For JHU, E\&PS Fluids II, Spring '21.
 
-Some code is in MATLAB, some in Julia (Oceananigans for DNS, gridap for arbitrary domain modal solution).
+Some code is in MATLAB, some in Julia ([Oceananigans](https://clima.github.io/OceananigansDocumentation/stable/) for DNS, [gridap](https://gridap.github.io/Gridap.jl/stable/) for arbitrary domain modal solution).
 
 Comments welcome!
 
