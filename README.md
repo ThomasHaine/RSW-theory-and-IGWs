@@ -5,7 +5,7 @@ Rotating Shallow Water Theory, Inertia Gravity Waves, and Geostrophic Adjustment
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6798842.svg)](https://doi.org/10.5281/zenodo.6798842)
 
 
-Notes, codes, and visualizations on rotating shallow water (RSW) theory, inertia-gravity waves, and geostrophic adjustment.
+Notes, codes, and visualizations on rotating shallow water (RSW) theory, inertia-gravity waves (IGW), and geostrophic adjustment.
 
 Directories contain theory, numerical verification, and numerical solution to RSW IGW problems.
 
