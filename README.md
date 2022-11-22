@@ -17,4 +17,6 @@ Some code is in MATLAB, some in Julia ([Oceananigans](https://clima.github.io/Oc
 
 Comments welcome!
 
+The work to produce this repo was partly supported by NSF award 1756863.
+
 --------
