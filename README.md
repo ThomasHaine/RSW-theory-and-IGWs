@@ -11,7 +11,7 @@ Directories contain theory, numerical verification, and numerical solution to RS
 
 To get started see Write up/Theory notes.pdf
 
-For JHU, E\&PS Fluids II, Spring '21.
+For JHU E\&PS Fluids II, Spring '21.
 
 Some code is in MATLAB, some in Julia ([Oceananigans](https://clima.github.io/OceananigansDocumentation/stable/) for DNS, [gridap](https://gridap.github.io/Gridap.jl/stable/) for arbitrary domain modal solution).
 
