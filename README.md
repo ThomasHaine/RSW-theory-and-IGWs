@@ -1,6 +1,5 @@
 Rotating Shallow Water Theory, Inertia Gravity Waves, and Geostrophic Adjustment: Theory, Solutions, Examples, and Software
 ==============================
-[![.github/workflows/release.yaml](https://github.com/ThomasHaine/RSW-theory-and-IGWs/actions/workflows/release.yaml/badge.svg)](https://github.com/ThomasHaine/RSW-theory-and-IGWs/actions/workflows/release.yaml)
 [![License:MIT](https://img.shields.io/badge/License-MIT-lightgray.svg?style=flt-square)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6798842.svg)](https://doi.org/10.5281/zenodo.6798842)
 
