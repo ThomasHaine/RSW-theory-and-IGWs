@@ -1,0 +1,25 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: RSW-theory-and-IGWs
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Thomas
+    family-names: Haine
+    email: Thomas.Haine@jhu.edu
+    name-particle: Thomas
+    affiliation: Johns Hopkins University
+    orcid: 'https://orcid.org/0000-0001-8231-2419'
+repository-code: 'https://github.com/ThomasHaine/RSW-theory-and-IGWs'
+url: 'https://github.com/ThomasHaine'
+abstract: >-
+  Notes, codes, and visualizations on rotating shallow water
+  theory
+keywords:
+  - ocean circulation
+  - shallow water dynamics
+license: MIT
